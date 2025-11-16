@@ -1,0 +1,15 @@
+{
+  "name": "mazemaker",
+  "version": "1.0.0",
+  "description": "The idea here is to have various configurable layers. we save the intermediate states, so any changes only have to regenerate downstream things",
+  "main": "index.js",
+  "scripts": {
+    "start": "esbuild src/main.ts --bundle --servedir=./www/ --outdir=./www/js",
+    "build": "esbuild src/main.ts --bundle --minify --outdir=./www/js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.25.10"
+  }
+}
