@@ -1,74 +1,70 @@
-// const LAYERS = ["Dimensions", "banana", "coconut"]
-
-import { Layer, LAYERS2 } from "./layers";
+import { L1, Layer3 } from "./layers";
 import { LayerComponent } from "./lsyer-component"
-import { Array2, ReturnsGenerator, State } from "./types"
+import { MyGenerator } from "./types"
 
 
 
 export class MazeComponent extends HTMLElement {
-    private ctx:CanvasRenderingContext2D;
-    public state:State = {
-        maze: new Array2(20, 20, (x,y)=>({roomId:0, solid: true})),
-        generatorStack: []
-    };
+    private ctx: CanvasRenderingContext2D;
+    private curGenerator: null | [Layer3<any, any>, MyGenerator] = null;
 
     connectedCallback() {
-        
+
         const canvas = document.createElement("canvas");
         canvas.width = 600;
         canvas.height = 600;
         this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         this.appendChild(canvas);
 
-        LAYERS2.forEach(layer => {
+        let cur: Layer3<any, any> | undefined = L1;
+        this.curGenerator = [cur, cur.apply()()];
+        cur.init(null);
+        while (cur) {
+
             const elem = document.createElement("my-layercomponent");
-            elem.setAttribute("type", layer.title);
-            this.state.generatorStack.push(layer.apply(layer, this.state)())
+            elem.setAttribute("type", cur.title);
+            // this.state.generatorStack.push(layer.apply(layer, this.state)())
             this.appendChild(elem);
-        });
+
+            cur = cur.next;
+        }
+
         // TODO add canvas
         this.tick(0);
     }
 
-    public tick(time:number){
+    public tick(time: number) {
         console.log("tick")
-        if(this.state.generatorStack.length > 0){
-            const n = this.state.generatorStack[0].next();
-            if(n.done){
-                this.state.generatorStack.shift(); // more of a queue at this point
+        if (this.curGenerator) {
+            const n = this.curGenerator[1].next();
+            if (n.done) {
+                const nextLayer = this.curGenerator[0].next;
+                if (nextLayer) {
+                    nextLayer.init(this.curGenerator[0].state);
+                    this.curGenerator = [nextLayer, nextLayer.apply()()];
+                } else {
+                    this.curGenerator = null;
+                    console.log("Done")
+                    return;
+                }
             }
 
-            const ctx = this.ctx;
-            ctx.fillStyle = "white";
-            const w = 600, h= 600;
-            ctx.fillRect(0,0,w,h);
-            const s =Math.floor(Math.min(w/this.state.maze.w, h/this.state.maze.h));
-            this.state.maze.forEach((x,y,v)=>{
-                ctx.fillStyle = v.solid ? "navy" : "yellow";
-                ctx.fillRect(x*s,y*s,s,s);
-            });
-            ctx.strokeStyle = "black"
-            this.state.maze.forEach((x,y,v)=>{
-                ctx.strokeRect(x*s,y*s,s,s);
-            });
+            this.curGenerator[0].render(this.ctx)
 
-            window.requestAnimationFrame(n=>this.tick(n));
+            window.requestAnimationFrame(n => this.tick(n));
         } else {
             console.log("done");
         }
     }
 
-    public refreshLayer(layer:Layer){
-        // TODO i nthe future this will store a state at each depth
-        // the array2 will have a function to copy
-        const stackLen =this.state.generatorStack.length;
-        this.state.generatorStack = [];
-        LAYERS2.forEach(layer => {
-            this.state.generatorStack.push(layer.apply(layer, this.state)());
-        });
-        if(stackLen == 0){
-            this.tick(0)
+
+    public refreshLayer(layer: Layer3<any, any>) {
+        const triggerAnimation = this.curGenerator == null;
+        console.log("Refresh", layer?.title, "trigger Animation = " + triggerAnimation, "with prev state", layer.prev?.state);
+        layer.init(layer.prev?.state);
+        this.curGenerator = [layer, layer.apply()()];
+        if (triggerAnimation) {
+            window.requestAnimationFrame(n => this.tick(n));
         }
     }
 }

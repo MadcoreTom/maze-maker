@@ -1,8 +1,8 @@
-import { Layer, LAYERS2 } from "./layers";
+import { ALL_LAYERS, Layer3 } from "./layers";
 import { MazeComponent } from "./main";
 
 export class LayerComponent extends HTMLElement {
-    private layer: Layer;
+    private layer: Layer3<any, any>;
     private parent: MazeComponent;
 
     private findParentMaze(): MazeComponent | undefined {
@@ -46,7 +46,7 @@ export class LayerComponent extends HTMLElement {
                     }
                 }
                     */
-        const layer = LAYERS2.filter(x => x.title == type)[0];
+        const layer = ALL_LAYERS[type];
         if (layer) {
             layer.params.forEach(param => {
                 this.addNumberInput(this, param.name, param.min, param.max, param.value);
@@ -68,14 +68,14 @@ export class LayerComponent extends HTMLElement {
         label.appendChild(input);
         parent.appendChild(label);
         input.addEventListener("blur", () => {
-            this.layer.params.filter(p=>p.name == title && p.type == "number").forEach(p=>p.value = input.valueAsNumber)
+            this.layer.params.filter(p => p.name == title && p.type == "number").forEach(p => p.value = input.valueAsNumber)
             this.onChange();
-    });
+        });
     }
 
     private onChange() {
         if (this.parent) {
-            this.parent.refreshLayer(this.layer)
+            this.parent.refreshLayer(this.layer);
         }
     }
 
