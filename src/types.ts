@@ -55,6 +55,10 @@ export class Array2<T> {
         }
     }
 
+    public clone<U>(fn: (x: number, y: number, v: T) => U): Array2<U> {
+        return new Array2<U>(this.w, this.h, (x, y) => fn(x, y, this.data[x + y * this.w]));
+    }
+
     public forEach(fn: (x: number, y: number, v: T) => void) {
         for (let y = 0; y < this.h; y++) {
             for (let x = 0; x < this.w; x++) {

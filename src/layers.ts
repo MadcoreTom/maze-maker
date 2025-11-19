@@ -81,6 +81,22 @@ function renderInitState(ctx: CanvasRenderingContext2D, state: StateInit) {
     });
 }
 
+
+function renderRoomIds(ctx: CanvasRenderingContext2D, state: StateInit) {
+    ctx.fillStyle = "white";
+    const w = 600, h = 600;
+    ctx.fillRect(0, 0, w, h);
+    const s = Math.floor(Math.min(w / state.maze.w, h / state.maze.h));
+    state.maze.forEach((x, y, v) => {
+        ctx.fillStyle = v.solid ? "navy" : `hsl(${v.roomId*10},80%,60%)`;
+        ctx.fillRect(x * s, y * s, s, s);
+    });
+    ctx.strokeStyle = "black"
+    state.maze.forEach((x, y, v) => {
+        ctx.strokeRect(x * s, y * s, s, s);
+    });
+}
+
 type StateSolver = StateInit & {queue:[number,number][]};
 
 class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
@@ -114,13 +130,12 @@ class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
     }
     render(ctx: CanvasRenderingContext2D) {
         if (this.state) {
-            renderInitState(ctx, this.state);
+            renderRoomIds(ctx, this.state);
         }
     }
     apply(): ReturnsGenerator {
         const state = this.state as StateSolver;
         return function* () {
-console.log(state.queue)
 // todo pop off queue, check opposing nonsolids are different rooms, if so,set min(r1,r2) to max(r1,r2) . yield;
             let cur = state.queue.shift();
             while(cur){
@@ -129,7 +144,6 @@ console.log(state.queue)
                 const right= state.maze.get(x+1,y);
                 const up= state.maze.get(x,y-1) ;
                 const down = state.maze.get(x,y+1);
-console.log("",left,right,up,down);
                 // horizontal
                 if(left && !left.solid && right && !right.solid && left.roomId != right.roomId){
                     const low = Math.min(left.roomId, right.roomId);
@@ -140,7 +154,6 @@ console.log("",left,right,up,down);
                         }
                     })
                     state.maze.set(x,y, {solid: false, roomId: high});
-                    console.log("h")
                 }
                 // vertical
                 else if(up && !up.solid && down && !down.solid && up.roomId != down.roomId){
@@ -160,6 +173,62 @@ console.log("",left,right,up,down);
         }
     }
 }
+
+
+
+class EndTrimmerLayer extends Layer3< StateSolver,StateInit> {
+    constructor() {
+        super("Trimmer", [
+            {
+                name: "iterations",
+                min:0,
+                max:100,
+                value:10,
+                type:"number"
+            }
+        ]);
+    }
+    convert(state: StateSolver): StateInit {
+        return {
+            maze: state.maze.clone((x,y,v)=>v)
+        };
+    }
+    render(ctx: CanvasRenderingContext2D) {
+        if (this.state) {
+            renderInitState(ctx, this.state);
+        }
+    }
+    apply(): ReturnsGenerator {
+        const state = this.state as StateSolver;
+        const iterations = this.getNumberParam("iterations", 0);
+        return function* () {
+            for (let i = 1; i < iterations; i++) {
+                const queue: [number, number][] = [];
+                state.maze.forEach((x, y, v) => {
+                    if (x > 0 && y > 0 && x < state.maze.w - 1 && y < state.maze.h - 1 && !state.maze.get(x, y)?.solid) {
+                        const neighbours = [
+                            state.maze.get(x - 1, y),
+                            state.maze.get(x + 1, y),
+                            state.maze.get(x, y - 1),
+                            state.maze.get(x, y + 1)
+                        ].filter(a => a && !a.solid).length;
+                        if (neighbours == 1) {
+                            queue.push([x, y]);
+                        }
+                    }
+                });
+                yield;
+                // TODO shuffle queue?
+                for (let [x, y] of queue) {
+                    (state.maze.get(x, y) as Tile).solid = true;
+                    yield;
+                }
+            }
+        }
+    }
+}
+
+
 class RandomizeLayer extends Layer3<StateInit, StateInit> {
     constructor() {
         super("Randomize", [{
@@ -177,7 +246,6 @@ class RandomizeLayer extends Layer3<StateInit, StateInit> {
         }
     }
     apply(): ReturnsGenerator {
-        console.log("apply rand", this.state)
         const state = this.state as StateInit;
         const count = this.getNumberParam("iterations", 0);
         return function* () {
@@ -186,7 +254,6 @@ class RandomizeLayer extends Layer3<StateInit, StateInit> {
                 const y = Math.floor(Math.random() * state.maze.h);
                 const t = state.maze.get(x, y);
                 if (t) {
-                    console.log(x, y)
                     t.solid = !t.solid;
                 }
                 const tmp = state.maze.get(0, 0);
@@ -198,7 +265,6 @@ class RandomizeLayer extends Layer3<StateInit, StateInit> {
         }
     }
     render(ctx: CanvasRenderingContext2D) {
-        console.log("r", this.state)
         if (this.state) {
             renderInitState(ctx, this.state);
         }
@@ -212,11 +278,15 @@ L2.prev = L1;
 const L3 = new MazeSolverLayer();
 L2.next = L3;
 L3.prev = L2;
+const L4 = new EndTrimmerLayer();
+L3.next = L4;
+L4.prev = L3;
 
 export const ALL_LAYERS: { [id: string]: Layer3<any, any> } = {};
 ALL_LAYERS[L1.title] = L1;
 ALL_LAYERS[L2.title] = L2;
 ALL_LAYERS[L3.title] = L3;
+ALL_LAYERS[L4.title] = L4;
 
 export type Parameter = {
     name: string,
