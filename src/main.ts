@@ -1,3 +1,4 @@
+import { DraggableNumberInput } from "./draggable-number-input";
 import { L1, Layer3 } from "./layers";
 import { LayerComponent } from "./lsyer-component"
 import { MyGenerator } from "./types"
@@ -72,3 +73,6 @@ export class MazeComponent extends HTMLElement {
 customElements.define("my-layercomponent", LayerComponent);
 
 customElements.define("my-mazecomponent", MazeComponent);
+
+
+customElements.define('draggable-number-input', DraggableNumberInput);
