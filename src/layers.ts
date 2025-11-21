@@ -183,14 +183,14 @@ class EndTrimmerLayer extends Layer3< StateSolver,StateInit> {
                 name: "iterations",
                 min:0,
                 max:100,
-                value:10,
+                value:2,
                 type:"number"
             }
         ]);
     }
     convert(state: StateSolver): StateInit {
         return {
-            maze: state.maze.clone((x,y,v)=>v)
+            maze: state.maze.clone((x,y,v)=>({...v}))
         };
     }
     render(ctx: CanvasRenderingContext2D) {
@@ -271,22 +271,25 @@ class RandomizeLayer extends Layer3<StateInit, StateInit> {
     }
 }
 
-export const L1 = new FirstLayer();
-const L2 = new RandomizeLayer();
-L1.next = L2;
-L2.prev = L1;
-const L3 = new MazeSolverLayer();
-L2.next = L3;
-L3.prev = L2;
-const L4 = new EndTrimmerLayer();
-L3.next = L4;
-L4.prev = L3;
+function registerLayer<A>(cur:Layer3<A,any>, prev?:Layer3<any,A>){
+    if(prev){
+        prev.next = cur;
+        cur.prev = prev;
+    }
+    ALL_LAYERS[cur.title] = cur;
+}
+
 
 export const ALL_LAYERS: { [id: string]: Layer3<any, any> } = {};
-ALL_LAYERS[L1.title] = L1;
-ALL_LAYERS[L2.title] = L2;
-ALL_LAYERS[L3.title] = L3;
-ALL_LAYERS[L4.title] = L4;
+
+export const L1 = new FirstLayer();
+const L2 = new MazeSolverLayer();
+const L3 = new EndTrimmerLayer();
+registerLayer(L1);
+registerLayer(L2, L1);
+registerLayer(L3,L2)
+
+
 
 export type Parameter = {
     name: string,

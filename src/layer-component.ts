@@ -1,5 +1,7 @@
 import { ALL_LAYERS, Layer3 } from "./layers";
 import { MazeComponent } from "./main";
+import "./draggable-number-input";
+import { createElement } from "./element-util";
 
 export class LayerComponent extends HTMLElement {
     private layer: Layer3<any, any>;
@@ -29,23 +31,17 @@ export class LayerComponent extends HTMLElement {
             }
             else { console.log("Could not find parent") }
         }, 1)
+        this.style.cssText = `
+        border: 10px solid red;
+        border-radius: 5px;
+        display:flex;`
     }
 
     private onReady(parent: MazeComponent, type: string) {
         const title = document.createElement("h2");
         title.innerText = type;
         this.appendChild(title);
-        /*
-                switch (type) {
-                    case "Dimensions": {
-                        // const widthElem = document.createElement("input");
-                        // widthElem.type = "number";
-                        // this.appendChild(widthElem);
-                        addNumberInput(this, "Width",5,100,20);
-                        addNumberInput(this, "Height",5,100,20);
-                    }
-                }
-                    */
+        
         const layer = ALL_LAYERS[type];
         if (layer) {
             layer.params.forEach(param => {
@@ -59,17 +55,23 @@ export class LayerComponent extends HTMLElement {
 
     private addNumberInput(parent: HTMLElement, title: string, min: number, max: number, defaultVal: number) {
         const label = document.createElement("label");
-        label.textContent = title;
-        const input = document.createElement("input") as HTMLInputElement;
-        input.type = "number";
-        input.value = defaultVal + "";
-        input.min = min + "";
-        input.max = max + "";
+        label.textContent = title + " ";
+        
+const input = createElement("draggable-number-input", {
+    min, max,value:defaultVal
+})
+
         label.appendChild(input);
         parent.appendChild(label);
-        input.addEventListener("blur", () => {
-            this.layer.params.filter(p => p.name == title && p.type == "number").forEach(p => p.value = input.valueAsNumber)
-            this.onChange();
+        
+        let debounceTimeout: number;
+        
+        input.addEventListener("valuechange", (e: any) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = window.setTimeout(() => {
+                this.layer.params.filter(p => p.name == title && p.type == "number").forEach(p => p.value = e.detail.value)
+                this.onChange();
+            }, 500);
         });
     }
 

@@ -12,12 +12,12 @@ export class DraggableNumberInput extends HTMLElement {
     constructor() {
         super();
         
-        this.min = Math.floor(parseFloat(this.getAttribute('min') || '0'));
-        this.max = Math.floor(parseFloat(this.getAttribute('max') || '100'));
-        this.initialValue = Math.floor(parseFloat(this.getAttribute('value') || '50'));
     }
 
     connectedCallback() {
+        this.min = Math.floor(parseFloat(this.getAttribute('min') || '0'));
+        this.max = Math.floor(parseFloat(this.getAttribute('max') || '100'));
+        this.initialValue = Math.floor(parseFloat(this.getAttribute('value') || '50'));
         this.createInput();
         this.setupEventListeners();
     }
@@ -26,6 +26,12 @@ export class DraggableNumberInput extends HTMLElement {
         this.label = document.createElement('label');
         this.label.style.cursor = 'ns-resize';
         this.label.style.userSelect = 'none';
+        this.label.style.display = 'inline-block';
+        this.label.style.padding = '4px 8px';
+        this.label.style.backgroundColor = '#2a2a2a';
+        this.label.style.border = '1px solid #666';
+        this.label.style.borderRadius = '4px';
+        this.label.style.color = '#ccc';
 
         this.input = document.createElement('input');
         this.input.type = 'number';
@@ -33,9 +39,30 @@ export class DraggableNumberInput extends HTMLElement {
         this.input.min = this.min.toString();
         this.input.max = this.max.toString();
         this.input.step = '1';
+        this.input.style.backgroundColor = 'transparent';
+        this.input.style.border = 'none';
+        this.input.style.color = '#ccc';
+        this.input.style.outline = 'none';
+        this.input.style.width = '60px';
+        this.input.style.fontSize = '14px';
 
         this.label.appendChild(this.input);
         this.appendChild(this.label);
+        
+        // Focus styles
+        this.input.addEventListener('focus', () => {
+            this.label.style.backgroundColor = '#3a3a2a';
+            this.label.style.borderColor = '#b8b800';
+            this.label.style.color = '#fff';
+            this.input.style.color = '#fff';
+        });
+        
+        this.input.addEventListener('blur', () => {
+            this.label.style.backgroundColor = '#2a2a2a';
+            this.label.style.borderColor = '#666';
+            this.label.style.color = '#ccc';
+            this.input.style.color = '#ccc';
+        });
     }
 
     private setupEventListeners() {
@@ -112,4 +139,3 @@ export class DraggableNumberInput extends HTMLElement {
     }
 }
 
-customElements.define('draggable-number-input', DraggableNumberInput);

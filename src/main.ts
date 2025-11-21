@@ -1,7 +1,8 @@
 import { DraggableNumberInput } from "./draggable-number-input";
 import { L1, Layer3 } from "./layers";
-import { LayerComponent } from "./lsyer-component"
+import { LayerComponent } from "./layer-component"
 import { MyGenerator } from "./types"
+import { createElement } from "./element-util";
 
 
 
@@ -16,6 +17,14 @@ export class MazeComponent extends HTMLElement {
         canvas.height = 600;
         this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         this.appendChild(canvas);
+        canvas.style.alignSelf = "center"
+
+        const layerContainer = createElement("div",{});
+        this.appendChild(layerContainer)
+        layerContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 10px`
 
         let cur: Layer3<any, any> | undefined = L1;
         this.curGenerator = [cur, cur.apply()()];
@@ -25,12 +34,17 @@ export class MazeComponent extends HTMLElement {
             const elem = document.createElement("my-layercomponent");
             elem.setAttribute("type", cur.title);
             // this.state.generatorStack.push(layer.apply(layer, this.state)())
-            this.appendChild(elem);
+            layerContainer.appendChild(elem);
 
             cur = cur.next;
         }
 
-        // TODO add canvas
+        this.style.cssText =`
+        display:flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        max-height: 100vh`
+
         this.tick(0);
     }
 
