@@ -1,7 +1,8 @@
-import { ALL_LAYERS, Layer3 } from "./layers";
+import { ALL_LAYERS } from "./layers";
 import { MazeComponent } from "./main";
 import "./draggable-number-input";
 import { createElement } from "./element-util";
+import { Layer3 } from "./layers/layer";
 
 export class LayerComponent extends HTMLElement {
     private layer: Layer3<any, any>;
@@ -32,9 +33,13 @@ export class LayerComponent extends HTMLElement {
             else { console.log("Could not find parent") }
         }, 1)
         this.style.cssText = `
-        border: 10px solid red;
-        border-radius: 5px;
-        display:flex;`
+        border: 1px solid yellow;
+        padding: 5px;
+        border-radius: 10px;
+        display:flex;
+        align-items: anchor-center;
+        color: yellow;
+        background: black;`
     }
 
     private onReady(parent: MazeComponent, type: string) {

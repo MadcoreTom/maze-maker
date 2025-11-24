@@ -1,8 +1,9 @@
 import { DraggableNumberInput } from "./draggable-number-input";
-import { L1, Layer3 } from "./layers";
+import { L1 } from "./layers";
 import { LayerComponent } from "./layer-component"
 import { MyGenerator } from "./types"
 import { createElement } from "./element-util";
+import { Layer3 } from "./layers/layer";
 
 
 
