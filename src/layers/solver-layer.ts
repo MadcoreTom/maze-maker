@@ -1,6 +1,8 @@
 import { renderRoomIds, StateInit, StateSolver } from "../layers";
-import { Array2, ReturnsGenerator, Tile } from "../types";
+import { Array2 } from "../util/array2";
+import { ReturnsGenerator, Tile } from "../types";
 import { Layer3 } from "./layer";
+import { shuffle } from "../util/random";
 
 export class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
     constructor() {
@@ -19,12 +21,7 @@ export class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
             }
         });
         // shuffle
-        for (let i = 0; i < queue.length - 1; i++) {
-            const r = Math.floor(Math.random() * (queue.length - i)) + i;
-            const tmp = queue[r];
-            queue[r] = queue[i];
-            queue[i] = tmp;
-        }
+        shuffle(queue);
         return {
             maze: new Array2<Tile>(state.maze.w, state.maze.h, (x, y) => ({ ...state.maze.get(x, y) as Tile })) // TODO implement a clone method
             ,

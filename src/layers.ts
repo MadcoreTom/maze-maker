@@ -3,7 +3,9 @@ import { Layer3 } from "./layers/layer";
 import { RoomLayer } from "./layers/room-layer";
 import { MazeSolverLayer } from "./layers/solver-layer";
 import { EndTrimmerLayer } from "./layers/trim-layer";
-import { Array2, ReturnsGenerator, State, Tile } from "./types"
+import { FillHairpinsLayer } from "./layers/fill-hairpins-layer";
+import { Array2 } from "./util/array2";
+import { ReturnsGenerator, State, Tile } from "./types"
 
 
 export function renderInitState(ctx: CanvasRenderingContext2D, state: StateInit) {
@@ -56,10 +58,12 @@ export const L1 = new FirstLayer();
 const L1_5 = new RoomLayer();
 const L2 = new MazeSolverLayer();
 const L3 = new EndTrimmerLayer();
+const L4 = new FillHairpinsLayer();
 registerLayer(L1);
 registerLayer(L1_5, L1);
 registerLayer(L2, L1_5);
-registerLayer(L3,L2)
+registerLayer(L3,L2);
+registerLayer(L4,L3);
 
 
 

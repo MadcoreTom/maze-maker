@@ -1,5 +1,6 @@
 import { renderInitState, StateInit } from "../layers";
-import { Array2, ReturnsGenerator, Tile } from "../types";
+import { Array2 } from "../util/array2";
+import { ReturnsGenerator, Tile } from "../types";
 import { Layer3 } from "./layer";
 
 export class FirstLayer extends Layer3<void, StateInit> {
