@@ -6,6 +6,7 @@ import { EndTrimmerLayer } from "./layers/trim-layer";
 import { FillHairpinsLayer } from "./layers/fill-hairpins-layer";
 import { Array2 } from "./util/array2";
 import { ReturnsGenerator, State, Tile } from "./types"
+import { IdentifierLayer } from "./layers/identifier-layer";
 
 
 export function renderInitState(ctx: CanvasRenderingContext2D, state: StateInit) {
@@ -59,14 +60,18 @@ const L1_5 = new RoomLayer();
 const L2 = new MazeSolverLayer();
 const L3 = new EndTrimmerLayer();
 const L4 = new FillHairpinsLayer();
+const L5 = new IdentifierLayer();
 registerLayer(L1);
 registerLayer(L1_5, L1);
 registerLayer(L2, L1_5);
 registerLayer(L3,L2);
 registerLayer(L4,L3);
+registerLayer(L5,L4);
 
 
+export type Tile2 = Tile & {type:"wall" | "outside" | "hall" | "room"}
 
 
 
 export type StateInit = { maze: Array2<Tile> };
+export type StateBanana = { maze: Array2<Tile2> };
