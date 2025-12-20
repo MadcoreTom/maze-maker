@@ -1,7 +1,7 @@
 import { ALL_LAYERS } from "./layers";
 import { MazeComponent } from "./main";
 import "./draggable-number-input";
-import { createElement } from "./element-util";
+import { applyStyle, createElement } from "./element-util";
 import { Layer3 } from "./layers/layer";
 
 export class LayerComponent extends HTMLElement {
@@ -32,21 +32,29 @@ export class LayerComponent extends HTMLElement {
             }
             else { console.log("Could not find parent") }
         }, 1)
-        this.style.cssText = `
-        border: 1px solid yellow;
-        padding: 5px;
-        border-radius: 10px;
-        display:flex;
-        align-items: anchor-center;
-        color: yellow;
-        background: black;`
+        applyStyle(this, {
+            background: "black",
+            color: "#bbb",
+            padding: "5px",
+            display: "flex",
+            alignItems: "anchor-center",
+            borderRadius: "2px",
+            justifyContent: "space-between",
+            minHeight: "36px"
+        });
     }
 
     private onReady(parent: MazeComponent, type: string) {
         const title = document.createElement("h2");
         title.innerText = type;
+        applyStyle(title, {
+            lineHeight: "100%",
+            margin: "0",
+            fontFamily: "monospace",
+            color: "white"
+        })
         this.appendChild(title);
-        
+
         const layer = ALL_LAYERS[type];
         if (layer) {
             layer.params.forEach(param => {
@@ -56,21 +64,40 @@ export class LayerComponent extends HTMLElement {
         } else {
             console.log("Could not find layer");
         }
+
+        const regen= document.createElement("button");
+        regen.textContent = "↻";
+        regen.ariaLabel = "Re-generate";
+        applyStyle(regen, {
+            background: "#bbb",
+            color: "black",
+            height: "30px",
+            width: "30px",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer"
+        });
+        regen.addEventListener("mouseover", ()=>{
+            applyStyle(regen, {background:"limegreen"});
+        })
+        regen.addEventListener("mouseout", ()=>{
+            applyStyle(regen, {background:"#bbb"});
+        })
+        regen.addEventListener("click", ()=>{
+            this.onChange();
+        });
+        this.appendChild(regen);
     }
 
     private addNumberInput(parent: HTMLElement, title: string, min: number, max: number, defaultVal: number) {
-        const label = document.createElement("label");
-        label.textContent = title + " ";
-        
-const input = createElement("draggable-number-input", {
-    min, max,value:defaultVal
-})
+        const input = createElement("draggable-number-input", {
+            min, max, value: defaultVal, label: title
+        });
 
-        label.appendChild(input);
-        parent.appendChild(label);
-        
+        parent.appendChild(input);
+
         let debounceTimeout: number;
-        
+
         input.addEventListener("valuechange", (e: any) => {
             clearTimeout(debounceTimeout);
             debounceTimeout = window.setTimeout(() => {

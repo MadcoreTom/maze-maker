@@ -44,6 +44,10 @@ export class Array2<T> {
         }
     }
 
+    // TODO create a foreach that returns a generator that yeilds for each element
+    // or kind of curries and returns a list of functions withn o arguments that 
+    // the caller can invoke and yield in between
+
     public getKernel(centre: XY, offset: XY[]): (T | undefined)[] {
         return offset
             .map(o => addXY(centre, o))

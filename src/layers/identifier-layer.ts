@@ -18,9 +18,9 @@ export class IdentifierLayer extends Layer3<StateInit, StateBanana> {
             [-1, -1], [-1, 0], [0, -1], [0, 0]
         ];
         const wallKernel: XY[] = [
-            [-1,-1], [0, -1], [1, -1],
-            [ -1,0],[ 1,0],
-            [-1,1],[0,1],[1,1]
+            [-1, -1], [0, -1], [1, -1],
+            [-1, 0], [1, 0],
+            [-1, 1], [0, 1], [1, 1]
         ]
         const state = this.state as StateBanana;
         return function* () {
@@ -39,7 +39,7 @@ export class IdentifierLayer extends Layer3<StateInit, StateBanana> {
                         }
                     } else {
                         const k = state.maze.getKernel([x, y], wallKernel);
-                        if(k.filter(a=>a && !a.solid).length > 0){
+                        if (k.filter(a => a && !a.solid).length > 0) {
                             v.type = "wall";
                         }
                     }
@@ -53,18 +53,25 @@ export class IdentifierLayer extends Layer3<StateInit, StateBanana> {
     render(ctx: CanvasRenderingContext2D) {
         if (this.state) {
             const state = this.state;
-            ctx.fillStyle = "white";
+            ctx.fillStyle = "red";
             const w = 600, h = 600;
             ctx.fillRect(0, 0, w, h);
-            const s = Math.floor(Math.min(w / state.maze.w, h / state.maze.h));
+            const s = Math.floor(Math.min(w / state.maze.w, h / state.maze.h)) * 2;
+            const wa = Math.ceil(s * 0.2);
+            const f = s - wa;
             state.maze.forEach((x, y, v) => {
                 ctx.fillStyle = colorMap[v.type];
-                ctx.fillRect(x * s, y * s, s, s);
+                ctx.fillRect(
+                    Math.floor(x / 2) * f  + Math.ceil(x / 2) * wa,
+                    Math.floor(y / 2) * f + Math.ceil(y / 2) * wa,
+                    x % 2 == 0 ? wa : f,
+                    y % 2 == 0 ? wa : f
+                );
             });
-            ctx.strokeStyle = "black"
-            state.maze.forEach((x, y, v) => {
-                ctx.strokeRect(x * s, y * s, s, s);
-            });
+            // ctx.strokeStyle = "black"
+            // state.maze.forEach((x, y, v) => {
+            //     ctx.strokeRect(x * s, y * s, s, s);
+            // });
         }
     }
 }

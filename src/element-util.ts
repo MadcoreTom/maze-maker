@@ -9,3 +9,7 @@ export function createElement(tag: string, attributes: { [key: string]: any }): 
     });
     return elem;
 }
+
+export function applyStyle(elem: HTMLElement, style: Partial<CSSStyleDeclaration>) {
+    Object.assign(elem.style, style);
+}

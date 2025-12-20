@@ -48,15 +48,25 @@ export class RoomLayer extends Layer3< StateSolver,StateInit> {
             const h = Math.floor(Math.random() * hr) * 2 + 3; 
             const xr = Math.floor((state.maze.w - w)/2);
             const yr = Math.floor((state.maze.h - h)/2);
-            const xo = Math.floor(Math.random() * xr) * 2 + 1;
-            const yo = Math.floor(Math.random() * yr) * 2 + 1;
+            let xo = Math.floor(Math.random() * xr) * 2 + 1;
+            let yo = Math.floor(Math.random() * yr) * 2 + 1;
             let roomId = 0;
-            for(let x=0;x<w;x++){
-                for(let y=0;y<h;y++){
-                    const t = state.maze.get(xo + x,yo + y);
-                    roomId = (t && t.roomId) ? Math.max(t.roomId, roomId) : roomId;
-                }
-            }
+              let overlapsRoom = true;
+              for (let a = 0; a < 10 && overlapsRoom; a++) {
+                overlapsRoom = false;
+                xo = Math.floor(Math.random() * xr) * 2 + 1;
+                yo = Math.floor(Math.random() * yr) * 2 + 1;
+                  for (let x = 0; x < w; x++) {
+                      for (let y = 0; y < h; y++) {
+                          const t = state.maze.get(xo + x, yo + y);
+                          roomId = (t && t.roomId) ? Math.max(t.roomId, roomId) : roomId;
+                          if(t && !t.solid && (x%2==0 || y%2==0) && !overlapsRoom){
+                             console.log("overlaps. maybe try again", t)
+                            overlapsRoom = true;
+                          }
+                      }
+                  }
+              }
             console.log("room", roomId, xo,yo,w,h)
             if(roomId > 0){
                 const roomIdsToReplace:number[] = [];
