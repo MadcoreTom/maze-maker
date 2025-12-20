@@ -59,13 +59,16 @@ export class IdentifierLayer extends Layer3<StateInit, StateBanana> {
             const s = Math.floor(Math.min(w / state.maze.w, h / state.maze.h)) * 2;
             const wa = Math.ceil(s * 0.2);
             const f = s - wa;
+            // vertical
+            const vwa = Math.ceil(s * 0.4);
+            const vf = s - vwa;
             state.maze.forEach((x, y, v) => {
                 ctx.fillStyle = colorMap[v.type];
                 ctx.fillRect(
                     Math.floor(x / 2) * f  + Math.ceil(x / 2) * wa,
-                    Math.floor(y / 2) * f + Math.ceil(y / 2) * wa,
+                    Math.floor(y / 2) * vf + Math.ceil(y / 2) * vwa,
                     x % 2 == 0 ? wa : f,
-                    y % 2 == 0 ? wa : f
+                    y % 2 == 0 ? vwa : vf
                 );
             });
             // ctx.strokeStyle = "black"
