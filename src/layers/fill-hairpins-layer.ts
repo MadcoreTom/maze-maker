@@ -1,10 +1,10 @@
-import { renderInitState, StateInit } from "../layers";
-import { ReturnsGenerator } from "../types";
+import { renderInitState } from "../layers";
+import { ReturnsGenerator, State } from "../types";
 import { shuffle } from "../util/random";
 import { XY } from "../util/xy";
 import { Layer3 } from "./layer";
 
-export class FillHairpinsLayer extends Layer3<StateInit, StateInit> {
+export class FillHairpinsLayer extends Layer3 {
     constructor() {
         super("Fill Hairpins", [
             {
@@ -16,10 +16,8 @@ export class FillHairpinsLayer extends Layer3<StateInit, StateInit> {
             }
         ])
     }
-    convert(state: StateInit): StateInit {
-        return {
-            maze: state.maze.clone((x,y,v)=>({...v}))
-        };
+    protected createInitialState(): State {
+        throw new Error("FillHairpinsLayer requires an input state");
     }
     apply(): ReturnsGenerator {
         const kernel: XY[] = [
@@ -27,7 +25,7 @@ export class FillHairpinsLayer extends Layer3<StateInit, StateInit> {
             [0, -1], [0, 1],
             [1, -1], [1, 0], [1, 1]
         ];
-        const state = this.state as StateInit;
+        const state = this.state!;
         const iterations = this.getNumberParam("Iterations", 0);
         return function* () {
             for (let i = 0; i < iterations; i++) {

@@ -5,7 +5,7 @@ import { applyStyle, createElement } from "./element-util";
 import { Layer3 } from "./layers/layer";
 
 export class LayerComponent extends HTMLElement {
-    private layer: Layer3<any, any>;
+    private layer: Layer3;
     private parent: MazeComponent;
 
     private findParentMaze(): MazeComponent | undefined {

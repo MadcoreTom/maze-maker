@@ -9,7 +9,7 @@ import { Layer3 } from "./layers/layer";
 
 export class MazeComponent extends HTMLElement {
     private ctx: CanvasRenderingContext2D;
-    private curGenerator: null | [Layer3<any, any>, MyGenerator] = null;
+    private curGenerator: null | [Layer3, MyGenerator] = null;
 
     connectedCallback() {
 
@@ -27,7 +27,7 @@ export class MazeComponent extends HTMLElement {
         flex-direction: column;
         gap: 10px`
 
-        let cur: Layer3<any, any> | undefined = L1;
+        let cur: Layer3 | undefined = L1;
         this.curGenerator = [cur, cur.apply()()];
         cur.init(null);
         while (cur) {
@@ -74,7 +74,7 @@ export class MazeComponent extends HTMLElement {
     }
 
 
-    public refreshLayer(layer: Layer3<any, any>) {
+    public refreshLayer(layer: Layer3) {
         const triggerAnimation = this.curGenerator == null;
         console.log("Refresh", layer?.title, "trigger Animation = " + triggerAnimation, "with prev state", layer.prev?.state);
         layer.init(layer.prev?.state);

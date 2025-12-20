@@ -1,23 +1,21 @@
-import { renderInitState, StateInit, StateSolver } from "../layers";
-import { ReturnsGenerator, Tile } from "../types";
+import { renderInitState } from "../layers";
+import { ReturnsGenerator, State, Tile } from "../types";
 import { Layer3 } from "./layer";
 
-export class EndTrimmerLayer extends Layer3< StateSolver,StateInit> {
+export class EndTrimmerLayer extends Layer3 {
     constructor() {
         super("Trimmer", [
             {
                 name: "iterations",
                 min:0,
                 max:100,
-                value:2,
+                value:4,
                 type:"number"
             }
         ]);
     }
-    convert(state: StateSolver): StateInit {
-        return {
-            maze: state.maze.clone((x,y,v)=>({...v}))
-        };
+    protected createInitialState(): State {
+        throw new Error("EndTrimmerLayer requires an input state");
     }
     render(ctx: CanvasRenderingContext2D) {
         if (this.state) {
@@ -25,10 +23,10 @@ export class EndTrimmerLayer extends Layer3< StateSolver,StateInit> {
         }
     }
     apply(): ReturnsGenerator {
-        const state = this.state as StateSolver;
+        const state = this.state!;
         const iterations = this.getNumberParam("iterations", 0);
         return function* () {
-            for (let i = 1; i < iterations; i++) {
+            for (let i = 0; i < iterations; i++) {
                 const queue: [number, number][] = [];
                 state.maze.forEach((x, y, v) => {
                     if (x > 0 && y > 0 && x < state.maze.w - 1 && y < state.maze.h - 1 && !state.maze.get(x, y)?.solid) {

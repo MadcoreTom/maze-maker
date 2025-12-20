@@ -9,7 +9,9 @@ import { ReturnsGenerator, State, Tile } from "./types"
 import { IdentifierLayer } from "./layers/identifier-layer";
 
 
-export function renderInitState(ctx: CanvasRenderingContext2D, state: StateInit) {
+import { State } from "./types";
+
+export function renderInitState(ctx: CanvasRenderingContext2D, state: State) {
     ctx.fillStyle = "white";
     const w = 600, h = 600;
     ctx.fillRect(0, 0, w, h);
@@ -25,7 +27,7 @@ export function renderInitState(ctx: CanvasRenderingContext2D, state: StateInit)
 }
 
 
-export function renderRoomIds(ctx: CanvasRenderingContext2D, state: StateInit) {
+export function renderRoomIds(ctx: CanvasRenderingContext2D, state: State) {
     ctx.fillStyle = "white";
     const w = 600, h = 600;
     ctx.fillRect(0, 0, w, h);
@@ -40,11 +42,9 @@ export function renderRoomIds(ctx: CanvasRenderingContext2D, state: StateInit) {
     });
 }
 
-export type StateSolver = StateInit & {queue:[number,number][]};
 
 
-
-function registerLayer<A>(cur:Layer3<A,any>, prev?:Layer3<any,A>){
+function registerLayer(cur: Layer3, prev?: Layer3){
     if(prev){
         prev.next = cur;
         cur.prev = prev;
@@ -53,7 +53,7 @@ function registerLayer<A>(cur:Layer3<A,any>, prev?:Layer3<any,A>){
 }
 
 
-export const ALL_LAYERS: { [id: string]: Layer3<any, any> } = {};
+export const ALL_LAYERS: { [id: string]: Layer3 } = {};
 
 export const L1 = new FirstLayer();
 const L1_5 = new RoomLayer();
@@ -69,9 +69,3 @@ registerLayer(L4,L3);
 registerLayer(L5,L4);
 
 
-export type Tile2 = Tile & {type:"wall" | "outside" | "hall" | "room"}
-
-
-
-export type StateInit = { maze: Array2<Tile> };
-export type StateBanana = { maze: Array2<Tile2> };

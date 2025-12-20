@@ -1,14 +1,17 @@
-import { renderRoomIds, StateInit, StateSolver } from "../layers";
+import { renderRoomIds } from "../layers";
 import { Array2 } from "../util/array2";
-import { ReturnsGenerator, Tile } from "../types";
+import { ReturnsGenerator, State, Tile } from "../types";
 import { Layer3 } from "./layer";
 import { shuffle } from "../util/random";
 
-export class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
+export class MazeSolverLayer extends Layer3 {
     constructor() {
         super("Solver", []);
     }
-    convert(state: StateInit): StateSolver {
+    protected createInitialState(): State {
+        throw new Error("MazeSolverLayer requires an input state");
+    }
+    protected deepCopy(state: State): State {
         const queue: [number, number][] = [];
         state.maze.forEach((x, y, v) => {
             const left = state.maze.get(x - 1, y)?.solid;
@@ -23,8 +26,8 @@ export class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
         // shuffle
         shuffle(queue);
         return {
-            maze: new Array2<Tile>(state.maze.w, state.maze.h, (x, y) => ({ ...state.maze.get(x, y) as Tile })) // TODO implement a clone method
-            ,
+            maze: new Array2<Tile>(state.maze.w, state.maze.h, (x, y) => ({ ...state.maze.get(x, y) as Tile })),
+            generatorStack: [...state.generatorStack],
             queue
         }
     }
@@ -34,7 +37,7 @@ export class MazeSolverLayer extends Layer3<StateInit, StateSolver> {
         }
     }
     apply(): ReturnsGenerator {
-        const state = this.state as StateSolver;
+        const state = this.state!;
         return function* () {
             // todo pop off queue, check opposing nonsolids are different rooms, if so,set min(r1,r2) to max(r1,r2) . yield;
             let cur = state.queue.shift();

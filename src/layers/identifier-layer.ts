@@ -1,16 +1,21 @@
-import { renderInitState, StateBanana, StateInit, Tile2 } from "../layers";
-import { ReturnsGenerator } from "../types";
+import { renderInitState } from "../layers";
+import { ReturnsGenerator, State, Tile2 } from "../types";
 import { shuffle } from "../util/random";
 import { XY } from "../util/xy";
 import { Layer3 } from "./layer";
 
-export class IdentifierLayer extends Layer3<StateInit, StateBanana> {
+export class IdentifierLayer extends Layer3 {
     constructor() {
         super("Identify", [])
     }
-    convert(state: StateInit): StateBanana {
+    protected createInitialState(): State {
+        throw new Error("IdentifierLayer requires an input state");
+    }
+    protected deepCopy(state: State): State {
         return {
-            maze: state.maze.clone((x, y, v) => ({ ...v, type: "outside" }))
+            maze: state.maze.clone((x, y, v) => ({ ...v, type: "outside" } as Tile2)),
+            generatorStack: [...state.generatorStack],
+            queue: state.queue ? [...state.queue] : undefined
         };
     }
     apply(): ReturnsGenerator {
@@ -22,7 +27,7 @@ export class IdentifierLayer extends Layer3<StateInit, StateBanana> {
             [-1, 0], [1, 0],
             [-1, 1], [0, 1], [1, 1]
         ]
-        const state = this.state as StateBanana;
+        const state = this.state!;
         return function* () {
             // find room and hallways
             state.maze.forEach((x, y, v) => {

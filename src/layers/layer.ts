@@ -1,20 +1,31 @@
-import { ReturnsGenerator } from "../types";
+import { ReturnsGenerator, State, Tile, Tile2 } from "../types";
 
-export abstract class Layer3<A, B> {
-    public state?: B;
-    public prev?: Layer3<any, A>;
-    public next?: Layer3<B, any>;
+export abstract class Layer3 {
+    public state?: State;
+    public prev?: Layer3;
+    public next?: Layer3;
     constructor(
         public readonly title: string,
         public readonly params: Parameter[]
     ) {
 
     }
-    public init(state: A) {
+    public init(state?: State) {
         this.state = this.convert(state);
         console.log("INIT", state, " -> ", this.state)
     }
-    abstract convert(state: A): B;
+    protected convert(state?: State): State {
+        if (!state) return this.createInitialState();
+        return this.deepCopy(state);
+    }
+    protected abstract createInitialState(): State;
+    protected deepCopy(state: State): State {
+        return {
+            maze: state.maze.clone((x, y, v) => ({ ...v })),
+            generatorStack: [...state.generatorStack],
+            queue: state.queue ? [...state.queue] : undefined
+        };
+    }
     abstract apply(): ReturnsGenerator;
     abstract render(ctx: CanvasRenderingContext2D);
     protected getNumberParam(name: string, defaultValue: number): number {

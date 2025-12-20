@@ -1,8 +1,8 @@
-import { renderInitState, renderRoomIds, StateInit, StateSolver } from "../layers";
-import { ReturnsGenerator, Tile } from "../types";
+import { renderInitState, renderRoomIds } from "../layers";
+import { ReturnsGenerator, State, Tile } from "../types";
 import { Layer3 } from "./layer";
 
-export class RoomLayer extends Layer3< StateSolver,StateInit> {
+export class RoomLayer extends Layer3 {
     constructor() {
         super("Rooms", [
             {
@@ -26,10 +26,8 @@ export class RoomLayer extends Layer3< StateSolver,StateInit> {
             }
         ]);
     }
-    convert(state: StateSolver): StateInit {
-        return {
-            maze: state.maze.clone((x,y,v)=>({...v}))
-        };
+    protected createInitialState(): State {
+        throw new Error("RoomLayer requires an input state");
     }
     render(ctx: CanvasRenderingContext2D) {
         if (this.state) {
@@ -37,7 +35,7 @@ export class RoomLayer extends Layer3< StateSolver,StateInit> {
         }
     }
     apply(): ReturnsGenerator {
-        const state = this.state as StateSolver;
+        const state = this.state!;
         const count = this.getNumberParam("Rooms", 0);
         // width and height ranges
         const wr = this.getNumberParam("Width Range", 0);

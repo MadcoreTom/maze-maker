@@ -1,9 +1,9 @@
-import { renderInitState, StateInit } from "../layers";
+import { renderInitState } from "../layers";
 import { Array2 } from "../util/array2";
-import { ReturnsGenerator, Tile } from "../types";
+import { ReturnsGenerator, State, Tile } from "../types";
 import { Layer3 } from "./layer";
 
-export class FirstLayer extends Layer3<void, StateInit> {
+export class FirstLayer extends Layer3 {
     constructor() {
         super("First", [
             {
@@ -22,7 +22,7 @@ export class FirstLayer extends Layer3<void, StateInit> {
             }
         ])
     }
-    convert(state: void): StateInit {
+    protected createInitialState(): State {
         let room = 1;
         return {
             maze: new Array2<Tile>(
@@ -32,7 +32,8 @@ export class FirstLayer extends Layer3<void, StateInit> {
                     const solid = x % 2 == 0 || y % 2 == 0;
                     return { solid: solid, roomId: !solid ? room++ : 0 }
                 }
-            )
+            ),
+            generatorStack: []
         }
     }
     apply(): ReturnsGenerator {
