@@ -1,8 +1,8 @@
 import { renderInitState } from "../layers";
 import { ReturnsGenerator, State, Tile } from "../types";
-import { Layer3 } from "./layer";
+import { LayerLogic } from "./layer";
 
-export class EndTrimmerLayer extends Layer3 {
+export class EndTrimmerLayer extends LayerLogic {
     constructor() {
         super("Trimmer", [
             {

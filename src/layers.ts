@@ -1,5 +1,5 @@
 import { FirstLayer } from "./layers/first-layer";
-import { Layer3 } from "./layers/layer";
+import { LayerLogic } from "./layers/layer";
 import { RoomLayer } from "./layers/room-layer";
 import { MazeSolverLayer } from "./layers/solver-layer";
 import { EndTrimmerLayer } from "./layers/trim-layer";
@@ -44,7 +44,7 @@ export function renderRoomIds(ctx: CanvasRenderingContext2D, state: State) {
 
 
 
-function registerLayer(cur: Layer3, prev?: Layer3){
+function registerLayer(cur: LayerLogic, prev?: LayerLogic){
     if(prev){
         prev.next = cur;
         cur.prev = prev;
@@ -53,7 +53,7 @@ function registerLayer(cur: Layer3, prev?: Layer3){
 }
 
 
-export const ALL_LAYERS: { [id: string]: Layer3 } = {};
+export const ALL_LAYERS: { [id: string]: LayerLogic } = {};
 
 export const L1 = new FirstLayer();
 const L1_5 = new RoomLayer();

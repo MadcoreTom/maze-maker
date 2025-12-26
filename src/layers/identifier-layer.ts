@@ -1,24 +1,14 @@
-import { renderInitState } from "../layers";
-import { ReturnsGenerator, State, Tile2 } from "../types";
-import { shuffle } from "../util/random";
+import { ReturnsGenerator, State, Tile } from "../types";
 import { XY } from "../util/xy";
-import { Layer3 } from "./layer";
+import { LayerLogic } from "./layer";
 
-export class IdentifierLayer extends Layer3 {
+export class IdentifierLayer extends LayerLogic {
     constructor() {
         super("Identify", [])
     }
-    protected createInitialState(): State {
-        throw new Error("IdentifierLayer requires an input state");
-    }
-    protected deepCopy(state: State): State {
-        return {
-            maze: state.maze.clone((x, y, v) => ({ ...v, type: "outside" } as Tile2)),
-            generatorStack: [...state.generatorStack],
-            queue: state.queue ? [...state.queue] : undefined
-        };
-    }
+    
     apply(): ReturnsGenerator {
+        (this.state as State).maze.forEach((x,y,t)=>{t.type = "outside"})
         const kernel: XY[] = [
             [-1, -1], [-1, 0], [0, -1], [0, 0]
         ];
@@ -35,10 +25,10 @@ export class IdentifierLayer extends Layer3 {
                     if (!v.solid) {
                         const k = state.maze.getKernel([x, y], kernel);
                         if (k.filter(a => a && !a.solid).length == 4) {
-                            (k[0] as Tile2).type = "room";
-                            (k[1] as Tile2).type = "room";
-                            (k[2] as Tile2).type = "room";
-                            (k[3] as Tile2).type = "room";
+                            (k[0] as Tile).type = "room";
+                            (k[1] as Tile).type = "room";
+                            (k[2] as Tile).type = "room";
+                            (k[3] as Tile).type = "room";
                         } else if (k[3] && !k[3].solid) {
                             v.type = "hall"
                         }
@@ -76,10 +66,7 @@ export class IdentifierLayer extends Layer3 {
                     y % 2 == 0 ? vwa : vf
                 );
             });
-            // ctx.strokeStyle = "black"
-            // state.maze.forEach((x, y, v) => {
-            //     ctx.strokeRect(x * s, y * s, s, s);
-            // });
+            
         }
     }
 }

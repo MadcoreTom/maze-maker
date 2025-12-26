@@ -18,6 +18,13 @@ import { Array2 } from './util/array2';
 
 export type State = {
     maze: Array2<Tile>,
-    generatorStack: MyGenerator[],
+    // generatorStack: MyGenerator[],
     queue?: [number, number][]
+}
+
+export function createInitialState(): State{
+    return {
+        maze: new Array2<Tile>(1,1,()=>({roomId: 0, solid: true, type: "outside"})),
+        // generatorStack: []
+    };
 }

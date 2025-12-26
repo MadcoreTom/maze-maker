@@ -2,9 +2,9 @@ import { renderInitState } from "../layers";
 import { ReturnsGenerator, State } from "../types";
 import { shuffle } from "../util/random";
 import { XY } from "../util/xy";
-import { Layer3 } from "./layer";
+import { LayerLogic } from "./layer";
 
-export class FillHairpinsLayer extends Layer3 {
+export class FillHairpinsLayer extends LayerLogic {
     constructor() {
         super("Fill Hairpins", [
             {

@@ -1,9 +1,9 @@
 import { renderInitState } from "../layers";
 import { Array2 } from "../util/array2";
 import { ReturnsGenerator, State, Tile } from "../types";
-import { Layer3 } from "./layer";
+import { LayerLogic } from "./layer";
 
-export class FirstLayer extends Layer3 {
+export class FirstLayer extends LayerLogic {
     constructor() {
         super("First", [
             {
@@ -22,23 +22,21 @@ export class FirstLayer extends Layer3 {
             }
         ])
     }
-    protected createInitialState(): State {
-        let room = 1;
-        return {
-            maze: new Array2<Tile>(
-                this.getNumberParam("Width", 10),
-                this.getNumberParam("Height", 10),
+    apply(): ReturnsGenerator {
+        const w = this.getNumberParam("Width", 10);
+        const h = this.getNumberParam("Height", 10);
+        const s = this.state as State;
+        console.log("potato", w,h, s)
+        return function* () {
+            let room = 1;
+            s.maze = new Array2<Tile>(
+                w,
+                h,
                 (x, y) => {
                     const solid = x % 2 == 0 || y % 2 == 0;
-                    return { solid: solid, roomId: !solid ? room++ : 0 }
+                    return { solid: solid, roomId: !solid ? room++ : 0, type: "outside" }
                 }
-            ),
-            generatorStack: []
-        }
-    }
-    apply(): ReturnsGenerator {
-        return function* () {
-
+            );
         }
     };
     render(ctx: CanvasRenderingContext2D) {

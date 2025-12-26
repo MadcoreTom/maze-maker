@@ -1,28 +1,29 @@
-import { renderInitState, renderRoomIds } from "../layers";
-import { ReturnsGenerator, State, Tile } from "../types";
-import { Layer3 } from "./layer";
+import { renderRoomIds } from "../layers";
+import { ReturnsGenerator, State } from "../types";
+import { Rect } from "../util/xy";
+import { LayerLogic } from "./layer";
 
-export class RoomLayer extends Layer3 {
+export class RoomLayer extends LayerLogic {
     constructor() {
         super("Rooms", [
             {
                 name: "Rooms",
-                min:0,
-                max:100,
-                value:3,
-                type:"number"
-            },{
+                min: 0,
+                max: 100,
+                value: 3,
+                type: "number"
+            }, {
                 name: "Width Range",
-                min:0, 
-                max:5,
+                min: 0,
+                max: 5,
                 type: "number",
-                value: 3
-            },{
+                value: 2
+            }, {
                 name: "Height Range",
-                min:0, 
-                max:5,
+                min: 0,
+                max: 5,
                 type: "number",
-                value: 3
+                value: 2
             }
         ]);
     }
@@ -34,63 +35,65 @@ export class RoomLayer extends Layer3 {
             renderRoomIds(ctx, this.state);
         }
     }
+    private pickRoom(state: State, maxWidth: number, maxHeight: number): Rect & { roomId: number } {
+        const attempts = 10;
+        let w = 0;
+        let h = 0;
+        let x = 0;
+        let y = 0;
+        let tryAgain = true;
+        let roomId = 0;
+        for (let i = 0; i < attempts && tryAgain; i++) {
+            roomId = 0;
+            tryAgain = false;
+            w = 3 + 2 * Math.floor(Math.random() * maxWidth);
+            h = 3 + 2 * Math.floor(Math.random() * maxHeight);
+            x = 1 + 2 * Math.floor(Math.random() * (state.maze.w / 2 - w));
+            y = 1 + 2 * Math.floor(Math.random() * (state.maze.h / 2 - h));
+            console.log("Attempt",x,y,w,h)
+            // find any neighbouring rooms
+            state.maze.forEach((xx,yy,t)=>{
+                if(xx >= x-1 && xx < x+w+1 && yy >= y-1 && yy < y+h+1){
+                    if(t.type == "room"){
+                        tryAgain = true;
+                    }
+                    roomId = Math.max(roomId, t.roomId);
+                }
+            });
+        }
+        return {
+            left: x,
+            top: y,
+            width: w,
+            height: h,
+            roomId: roomId
+        }
+    }
+
     apply(): ReturnsGenerator {
         const state = this.state!;
         const count = this.getNumberParam("Rooms", 0);
         // width and height ranges
         const wr = this.getNumberParam("Width Range", 0);
         const hr = this.getNumberParam("Height Range", 0);
+        const me = this;
         return function* () {
-          for(let i=0;i<count;i++){
-            const w = Math.floor(Math.random() * wr) * 2 + 3;
-            const h = Math.floor(Math.random() * hr) * 2 + 3; 
-            const xr = Math.floor((state.maze.w - w)/2);
-            const yr = Math.floor((state.maze.h - h)/2);
-            let xo = Math.floor(Math.random() * xr) * 2 + 1;
-            let yo = Math.floor(Math.random() * yr) * 2 + 1;
-            let roomId = 0;
-              let overlapsRoom = true;
-              for (let a = 0; a < 10 && overlapsRoom; a++) {
-                overlapsRoom = false;
-                xo = Math.floor(Math.random() * xr) * 2 + 1;
-                yo = Math.floor(Math.random() * yr) * 2 + 1;
-                  for (let x = 0; x < w; x++) {
-                      for (let y = 0; y < h; y++) {
-                          const t = state.maze.get(xo + x, yo + y);
-                          roomId = (t && t.roomId) ? Math.max(t.roomId, roomId) : roomId;
-                          if(t && !t.solid && (x%2==0 || y%2==0) && !overlapsRoom){
-                             console.log("overlaps. maybe try again", t)
-                            overlapsRoom = true;
-                          }
-                      }
-                  }
-              }
-            console.log("room", roomId, xo,yo,w,h)
-            if(roomId > 0){
-                const roomIdsToReplace:number[] = [];
-                for(let x=0;x<w;x++){
-                    for(let y=0;y<h;y++){
-                        const t = state.maze.get(xo + x,yo + y);
-                        if(t){
-                            if(!t.solid && t.roomId != roomId){
-                                roomIdsToReplace.push(t.roomId);
-                            }
-                            t.solid = false;
-                            t.roomId = roomId;
-                            // todo replace other room ids tht != roomid in cases of overlzpping multiple roos or room and a tile thst has a hiher tile id
-                        } else {
-                            console.log("room out of range",xo+x,yo+y);
-                        }
+            for (let i = 0; i < count; i++) {
+                // Pick a random location
+                const rect = me.pickRoom(state, wr, hr);
+                console.log("R", rect);
+                // set all the rooms
+                state.maze.forEach((xx,yy,t)=>{
+                    if(xx >= rect.left && xx < rect.left + rect.width && yy >= rect.top && yy < rect.top + rect.height){
+                        t.type = "room";
+                        t.solid = false;
+                        t.roomId = rect.roomId;
                     }
-                }
-                state.maze.forEach((x,y,v)=>{
-                    if(roomIdsToReplace.indexOf(v.roomId) >=0){
-                        v.roomId = roomId;
-                    }
-                })
+                });
+                // update any other rooms if there was an overlap
+
+                yield;
             }
-            yield;
-          }
         }
     }
 }

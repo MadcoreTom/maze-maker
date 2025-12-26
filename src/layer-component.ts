@@ -2,10 +2,10 @@ import { ALL_LAYERS } from "./layers";
 import { MazeComponent } from "./main";
 import "./draggable-number-input";
 import { applyStyle, createElement } from "./element-util";
-import { Layer3 } from "./layers/layer";
+import { LayerLogic } from "./layers/layer";
 
 export class LayerComponent extends HTMLElement {
-    private layer: Layer3;
+    private layer: LayerLogic;
     private parent: MazeComponent;
 
     private findParentMaze(): MazeComponent | undefined {
