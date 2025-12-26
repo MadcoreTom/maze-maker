@@ -60,6 +60,7 @@ export class MazeComponent extends HTMLElement {
         if (this.curGenerator) {
             const n = this.curGenerator[1].next();
             if (n.done) {
+                this.curGenerator[1].next();
                 const nextLayer = this.curGenerator[0].next;
                 if (nextLayer) {
                     nextLayer.init(this.curGenerator[0].state || createInitialState());

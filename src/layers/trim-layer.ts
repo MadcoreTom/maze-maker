@@ -24,7 +24,7 @@ export class EndTrimmerLayer extends LayerLogic {
     }
     apply(): ReturnsGenerator {
         const state = this.state!;
-        const iterations = this.getNumberParam("iterations", 0);
+        const iterations = this.getNumberParam("iterations", 0) * 2;
         return function* () {
             for (let i = 0; i < iterations; i++) {
                 const queue: [number, number][] = [];

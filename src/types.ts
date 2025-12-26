@@ -11,7 +11,7 @@ export type ReturnsGenerator = () => MyGenerator;
 export type Tile = {
     solid: boolean,
     roomId: number,
-    type:"wall" | "outside" | "hall" | "room"
+    type:"wall" | "outside" | "hall" | "room" | "door"
 }
 
 import { Array2 } from './util/array2';

@@ -6,9 +6,9 @@ export class IdentifierLayer extends LayerLogic {
     constructor() {
         super("Identify", [])
     }
-    
+
     apply(): ReturnsGenerator {
-        (this.state as State).maze.forEach((x,y,t)=>{t.type = "outside"})
+        (this.state as State).maze.forEach((x, y, t) => { t.type = "outside" })
         const kernel: XY[] = [
             [-1, -1], [-1, 0], [0, -1], [0, 0]
         ];
@@ -42,7 +42,18 @@ export class IdentifierLayer extends LayerLogic {
             });
             // TODO if near a room or a hall its a wall, and the rest is outside
             yield;
-
+            state.maze.forEach((x, y, v) => {
+                if (v.type == "hall" && (x % 2 != y % 2)) {
+                    const door = state.maze.getKernel([x, y], [[-1, 0], [1, 0], [0, 1], [0, -1]])
+                        .filter(t => t?.type == "room")
+                        .length > 0;
+                    if (door) {
+                        console.log("Door detected",x,y);
+                        v.type = "door";
+                    }
+                }
+            });
+yield;
         }
     };
     render(ctx: CanvasRenderingContext2D) {
@@ -59,14 +70,17 @@ export class IdentifierLayer extends LayerLogic {
             const vf = s - vwa;
             state.maze.forEach((x, y, v) => {
                 ctx.fillStyle = colorMap[v.type];
+                if(v.type == "door"){
+                    console.log("door")
+                }
                 ctx.fillRect(
-                    Math.floor(x / 2) * f  + Math.ceil(x / 2) * wa,
+                    Math.floor(x / 2) * f + Math.ceil(x / 2) * wa,
                     Math.floor(y / 2) * vf + Math.ceil(y / 2) * vwa,
                     x % 2 == 0 ? wa : f,
                     y % 2 == 0 ? vwa : vf
                 );
             });
-            
+
         }
     }
 }
@@ -75,5 +89,6 @@ const colorMap = {
     "hall": "limegreen",
     "outside": "navy",
     "room": "orange",
-    "wall": "blue"
+    "wall": "blue",
+    "door": "magenta"
 }
