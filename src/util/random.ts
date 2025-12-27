@@ -6,3 +6,7 @@ export function shuffle<T>(data: T[]): void {
         data[i] = tmp;
     }
 }
+
+export function pickRandom<T>(data: T[]): T {
+    return data[Math.floor(Math.random() * data.length)];
+}

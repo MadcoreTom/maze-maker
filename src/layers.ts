@@ -10,6 +10,7 @@ import { IdentifierLayer } from "./layers/identifier-layer";
 
 
 import { State } from "./types";
+import { FarthestLayer } from "./layers/farthest-layer";
 
 export function renderInitState(ctx: CanvasRenderingContext2D, state: State) {
     ctx.fillStyle = "white";
@@ -61,11 +62,11 @@ const L2 = new MazeSolverLayer();
 const L3 = new EndTrimmerLayer();
 const L4 = new FillHairpinsLayer();
 const L5 = new IdentifierLayer();
+const L6 = new FarthestLayer();
 registerLayer(L1);
 registerLayer(L1_5, L1);
 registerLayer(L2, L1_5);
 registerLayer(L3,L2);
 registerLayer(L4,L3);
 registerLayer(L5,L4);
-
-
+registerLayer(L6,L5);
