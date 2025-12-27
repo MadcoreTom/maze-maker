@@ -24,8 +24,11 @@ export class FarthestLayer extends LayerLogic {
                 t.distance = MAX_DIST;
             });
             const start = pickRandom(options);
+            // initialise
             (state.maze.get(start[0], start[1]) as Tile).distance = 0;
             let queue: XY[] = [start];
+            let last: XY = start;
+            // calc distance
             while(queue.length > 0){
                 const q = queue.shift() as XY;
                 const t = state.maze.get(q[0],q[1]) as Tile;
@@ -36,9 +39,46 @@ export class FarthestLayer extends LayerLogic {
                         queue.push(addXY(kernel[i],q));
                     }
                 });
+                last = q;
                 yield;
             }
+            // clear distance
+            state.maze.forEach((x,y,t)=>t.distance = MAX_DIST);
+            // initialise again for last (fathest point from our random point)
+            (state.maze.get(last[0], last[1]) as Tile).distance = 0;
+            queue = [last];
+            let last2: XY = last;
             // calc distance
+            while(queue.length > 0){
+                const q = queue.shift() as XY;
+                const t = state.maze.get(q[0],q[1]) as Tile;
+                state.maze.getKernel(q, kernel).forEach((n,i)=>{
+                    // if not visited
+                    if (n && n.distance == MAX_DIST && !n?.solid){
+                        n.distance = (t.distance  || 0)+ 1;
+                        queue.push(addXY(kernel[i],q));
+                    }
+                });
+                last2 = q;
+                yield;
+            }
+            // plot the path form last2 to last by moving to neighbours with lower distance
+            let cur = last2;
+            while(cur[0] != last[0] || cur[1] != last[1]){
+                const t = state.maze.get(cur[0],cur[1]) as Tile;
+                t.mainPath = true;
+                const d = t.distance as number;
+                const options = state.maze.getKernel(cur, kernel)
+                    .map((t, i) => t && t.distance != undefined && t.distance < d ? addXY(cur, kernel[i]) : null)
+                    .filter(x => x != null);
+                cur = options[0];
+                console.log(cur)
+                yield;
+            }
+            // and the last one
+            const t = state.maze.get(cur[0],cur[1]) as Tile;
+            t.mainPath = true;
+            yield;
         }
     }
 
@@ -65,6 +105,16 @@ export class FarthestLayer extends LayerLogic {
                     x % 2 == 0 ? wa : f,
                     y % 2 == 0 ? vwa : vf
                 );
+                if(v.mainPath){
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "white";
+                    ctx.strokeRect(
+                        Math.floor(x / 2) * f + Math.ceil(x / 2) * wa,
+                        Math.floor(y / 2) * vf + Math.ceil(y / 2) * vwa,
+                        x % 2 == 0 ? wa : f,
+                        y % 2 == 0 ? vwa : vf
+                    );
+                }
             });
 
         }

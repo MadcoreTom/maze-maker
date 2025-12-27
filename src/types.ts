@@ -12,7 +12,8 @@ export type Tile = {
     solid: boolean,
     roomId: number,
     type:"wall" | "outside" | "hall" | "room" | "door",
-    distance?: number
+    distance?: number,
+    mainPath: undefined | true
 }
 
 import { Array2 } from './util/array2';
