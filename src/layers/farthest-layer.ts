@@ -1,6 +1,6 @@
 import { ReturnsGenerator, State, Tile } from "../types";
 import { pickRandom } from "../util/random";
-import { addXY, equalsXY, XY } from "../util/xy";
+import { addXY, equalsXY, Rect, XY } from "../util/xy";
 import { LayerLogic } from "./layer";
 
 const kernel: XY[] = [[-1,0],[0,-1],[1,0],[0,1]];
@@ -108,7 +108,125 @@ export class FarthestLayer extends LayerLogic {
         }
     }
 
+    private renderTiles(ctx: CanvasRenderingContext2D, state: State,
+        options: {wallWidth:number, wallHeight:number},
+    renderers: {
+        tile: (s:State,t:Tile,xy:XY, rect:Rect)=>void,
+        vWall: (s:State,t:Tile,xy:XY, rect:Rect)=>void,
+        hWall: (s:State,t:Tile,xy:XY, rect:Rect)=>void,
+        corner: (s:State,t:Tile,xy:XY, rect:Rect)=>void,
+    }) {
+            // background
+            ctx.fillStyle = "red";
+            const w = 600, h = 600;
+            ctx.fillRect(0, 0, w, h);
+            // Work out tile sizes
+            const s = Math.floor(Math.min(w / state.maze.w, h / state.maze.h)) * 2; // Size in both x and y of 2 tiles
+            const wallWidth = Math.ceil(s * options.wallWidth);
+            const tileWidth = s - wallWidth;
+            const wallHeight = Math.ceil(s * options.wallHeight);
+            const tileHeight = s - wallHeight;
+            // For each tile
+            state.maze.forEach((x,y,t)=>{
+                const left = Math.floor(x/2) * tileWidth + Math.ceil(x/2) * wallWidth;
+                const top = Math.floor(y/2) * tileHeight + Math.ceil(y/2) * wallHeight;
+                if(x % 2 == 0){
+                    if(y % 2 == 0){
+                        renderers.corner(state, t, [x,y],{top, left, width: wallWidth, height: wallHeight});
+                    } else {
+                        renderers.vWall(state, t, [x,y],{top, left, width: wallWidth, height: tileHeight});
+                    }
+                } else {
+                    if(y % 2 == 0){
+                        renderers.hWall(state, t, [x,y],{top, left, width: tileWidth, height: wallHeight});
+                    } else {
+                        renderers.tile(state, t, [x,y],{top, left, width: tileWidth, height: tileHeight});
+                    }
+                }
+            });
+    }
+
     render(ctx: CanvasRenderingContext2D) {
+        if(this.state){
+            const state = this.state;
+            this.renderTiles(
+                ctx, state,
+                {wallWidth: 0.2, wallHeight: 0.4},
+                {
+                    corner: (s,t,xy,rect) => {
+                        if(t.type == "wall"){
+                            const below = state.maze.get(xy[0],xy[1]+1);
+                            if(below && below.type == "wall"){
+                                ctx.fillStyle = "magenta";
+                                ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                            } else if(!below || below.type == "outside") {
+                                ctx.fillStyle = "black";
+                                ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                                ctx.fillStyle = "magenta";
+                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height/2); // TODO rounding errors
+                            } else {
+                                ctx.fillStyle = colorMap[t.type];
+                                ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                                ctx.fillStyle = "magenta";
+                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height/2); // TODO rounding errors
+                            }
+                        } else if(t.type == "outside"){
+                            ctx.fillStyle = "black";
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        } else {
+                            ctx.fillStyle = colorMap[t.type];
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        }
+                    },
+                    hWall: (s,t,xy,rect) => {
+                        if(t.type == "wall"){
+                            const below = state.maze.get(xy[0],xy[1]+1);
+                            if(!below || below.type == "outside"){
+                                ctx.fillStyle = "black";
+                            } else {
+                                ctx.fillStyle = colorMap[t.type];
+
+                            }
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                            ctx.fillStyle = "magenta";
+                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height/2); // TODO rounding errors
+                        } else if(t.type == "outside"){
+                            ctx.fillStyle = "black";
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        } else {
+                            ctx.fillStyle = colorMap[t.type];
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        }
+                    },
+                    vWall: (s,t,xy,rect) => {
+                        if(t.type == "wall"){
+                            ctx.fillStyle = "magenta";
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        } else if(t.type == "outside"){
+                            ctx.fillStyle = "black";
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        } else {
+                            ctx.fillStyle = colorMap[t.type];
+                            ctx.fillRect(rect.left, rect.top,rect.width, rect.height);
+                        }
+                    },
+                    tile: (s,t,xy,rect) => {
+                        ctx.fillStyle = colorMap[t.type];
+                        if(t.distance != undefined && t.distance != MAX_DIST){
+                            ctx.fillStyle = `hsl(${t.distance * 3}, 100%, 50%)`;
+                        }
+                        if(t.mainPath){
+                            ctx.fillStyle = "white";
+                        }
+                        if(s.farthestFromPath && equalsXY(s.farthestFromPath, xy)){
+                            ctx.fillStyle = "yellow";
+                        }
+                        ctx.fillRect(rect.left, rect.top,rect.width, rect.height)
+                    }
+                }
+            )
+        }
+        /*
         if (this.state) {
             const state = this.state;
             ctx.fillStyle = "red";
@@ -154,7 +272,9 @@ export class FarthestLayer extends LayerLogic {
             });
 
         }
+            */
     }
+        
 }
 
 
@@ -163,5 +283,5 @@ const colorMap = {
     "outside": "black",
     "room": "orange",
     "wall": "blue",
-    "door": "magenta"
+    "door": "red"
 }
