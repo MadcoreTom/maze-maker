@@ -1,6 +1,6 @@
 import { ReturnsGenerator, State, Tile } from "../types";
 import { pickRandom } from "../util/random";
-import { addXY, XY } from "../util/xy";
+import { addXY, equalsXY, XY } from "../util/xy";
 import { LayerLogic } from "./layer";
 
 const kernel: XY[] = [[-1,0],[0,-1],[1,0],[0,1]];
@@ -63,7 +63,7 @@ export class FarthestLayer extends LayerLogic {
                 yield;
             }
             // plot the path form last2 to last by moving to neighbours with lower distance
-            let cur = last2;
+            let cur: XY = [last2[0],last2[1]];
             while(cur[0] != last[0] || cur[1] != last[1]){
                 const t = state.maze.get(cur[0],cur[1]) as Tile;
                 t.mainPath = true;
@@ -78,7 +78,33 @@ export class FarthestLayer extends LayerLogic {
             // and the last one
             const t = state.maze.get(cur[0],cur[1]) as Tile;
             t.mainPath = true;
+            state.start = last2;
+            state.end = cur;
             yield;
+            // set the path as distance 0 and add to the queue, the others are max
+            queue = [];
+            state.maze.forEach((x,y,t)=>{
+                if(t.mainPath){
+                    t.distance = 0;
+                    queue.push([x,y]);
+                } else {
+                    t.distance = MAX_DIST;
+                }
+            });
+            // calc distance from the path
+            while(queue.length > 0){
+                const q = queue.shift() as XY;
+                const t = state.maze.get(q[0],q[1]) as Tile;
+                state.maze.getKernel(q, kernel).forEach((n,i)=>{
+                    // if not visited
+                    if (n && n.distance == MAX_DIST && !n?.solid){
+                        n.distance = (t.distance  || 0)+ 1;
+                        queue.push(addXY(kernel[i],q));
+                    }
+                });
+                state.farthestFromPath = [q[0],q[1]];
+                yield;
+            }
         }
     }
 
@@ -113,6 +139,16 @@ export class FarthestLayer extends LayerLogic {
                         Math.floor(y / 2) * vf + Math.ceil(y / 2) * vwa,
                         x % 2 == 0 ? wa : f,
                         y % 2 == 0 ? vwa : vf
+                    );
+                }
+                if(state.farthestFromPath && equalsXY(state.farthestFromPath,[x,y])){
+                    ctx.lineWidth = 5;
+                    ctx.fillStyle = "rgba(255,255,255,0.5)";
+                    ctx.fillRect(
+                        Math.floor(x / 2) * f + Math.ceil(x / 2) * wa+2,
+                        Math.floor(y / 2) * vf + Math.ceil(y / 2) * vwa+2,
+                        (x % 2 == 0 ? wa : f) -4,
+                        (y % 2 == 0 ? vwa : vf) -4
                     );
                 }
             });

@@ -1,7 +1,5 @@
-
-
-
-
+import { Array2 } from './util/array2';
+import { XY } from './util/xy';
 
 export type MyGenerator = Generator<undefined, void, unknown>;
 
@@ -11,22 +9,22 @@ export type ReturnsGenerator = () => MyGenerator;
 export type Tile = {
     solid: boolean,
     roomId: number,
-    type:"wall" | "outside" | "hall" | "room" | "door",
+    type: "wall" | "outside" | "hall" | "room" | "door",
     distance?: number,
-    mainPath: undefined | true
+    mainPath?: true
 }
-
-import { Array2 } from './util/array2';
-
 export type State = {
     maze: Array2<Tile>,
     // generatorStack: MyGenerator[],
-    queue?: [number, number][]
+    queue?: [number, number][],
+    start?: XY,
+    end?: XY,
+    farthestFromPath?: XY
 }
 
-export function createInitialState(): State{
+export function createInitialState(): State {
     return {
-        maze: new Array2<Tile>(1,1,()=>({roomId: 0, solid: true, type: "outside"})),
+        maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside" })),
         // generatorStack: []
     };
 }
