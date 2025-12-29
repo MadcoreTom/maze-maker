@@ -5,11 +5,18 @@
   "main": "index.js",
   "scripts": {
     "start": "esbuild src/main.ts --bundle --servedir=./www/ --outdir=./www/js",
-    "build": "esbuild src/main.ts --bundle --minify --outdir=./www/js"
+    "build": "esbuild src/main.ts --bundle --minify --outdir=./www/js",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@biomejs/biome": "^2.3.10",
     "esbuild": "^0.25.10"
   }
 }
