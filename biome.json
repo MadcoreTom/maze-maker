@@ -7,18 +7,27 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/www/js/**/*.js"]
+    "includes": [
+      "**",
+      "!**/www/js/**/*.js"
+    ]
   },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
     "indentStyle": "space",
-    "indentWidth": 2,
+    "indentWidth": 4,
     "lineEnding": "lf",
     "lineWidth": 120,
     "attributePosition": "auto"
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -31,7 +40,8 @@
         "noUnusedFunctionParameters": "off"
       },
       "style": {
-        "noNonNullAssertion": "warn"
+        "noNonNullAssertion": "warn",
+        "useTemplate": "off"
       },
       "suspicious": {
         "noExplicitAny": "warn"
