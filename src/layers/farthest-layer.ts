@@ -1,5 +1,6 @@
 import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
+import type { Array2 } from "../util/array2";
 import { pickRandom } from "../util/random";
 import { addXY, equalsXY, Rect, type XY } from "../util/xy";
 import { LayerLogic } from "./layer";
@@ -16,8 +17,36 @@ export class FarthestLayer extends LayerLogic {
     public constructor() {
         super("Farthest", []);
     }
+    private *calcDistance(maze: Array2<Tile>, start: XY[], property: "distance"): Generator<unknown, XY, void> {
+        // initialise
+        maze.forEach((x, y, t) => {
+            t[property] = MAX_DIST;
+        });
+        start.forEach(xy => {
+            (maze.get(xy[0], xy[1]) as Tile)[property] = 0;
+        });
+        const queue: XY[] = [...start];
+        let last: XY = start[0];
+        // calc distance
+        while (queue.length > 0) {
+            const q = queue.shift() as XY;
+            const t = maze.get(q[0], q[1]) as Tile;
+            maze.getKernel(q, kernel).forEach((n, i) => {
+                // if not visited
+                if (n && n.distance === MAX_DIST && !n?.solid) {
+                    n.distance = (t.distance || 0) + 1;
+                    queue.push(addXY(kernel[i], q));
+                }
+            });
+            last = q;
+            // TODO make this a generator function so i can yield
+            yield;
+        }
+        return last;
+    }
     apply(): ReturnsGenerator {
         const state = this.state as State;
+        const calcDistance = this.calcDistance;
         return function* () {
             // find random point
             const options: XY[] = [];
@@ -28,46 +57,10 @@ export class FarthestLayer extends LayerLogic {
                 t.distance = MAX_DIST;
             });
             const start = pickRandom(options);
-            // initialise
-            (state.maze.get(start[0], start[1]) as Tile).distance = 0;
-            let queue: XY[] = [start];
-            let last: XY = start;
-            // calc distance
-            while (queue.length > 0) {
-                const q = queue.shift() as XY;
-                const t = state.maze.get(q[0], q[1]) as Tile;
-                state.maze.getKernel(q, kernel).forEach((n, i) => {
-                    // if not visited
-                    if (n && n.distance === MAX_DIST && !n?.solid) {
-                        n.distance = (t.distance || 0) + 1;
-                        queue.push(addXY(kernel[i], q));
-                    }
-                });
-                last = q;
-                yield;
-            }
-            // clear distance
-            state.maze.forEach((x, y, t) => {
-                t.distance = MAX_DIST;
-            });
-            // initialise again for last (fathest point from our random point)
-            (state.maze.get(last[0], last[1]) as Tile).distance = 0;
-            queue = [last];
-            let last2: XY = last;
-            // calc distance
-            while (queue.length > 0) {
-                const q = queue.shift() as XY;
-                const t = state.maze.get(q[0], q[1]) as Tile;
-                state.maze.getKernel(q, kernel).forEach((n, i) => {
-                    // if not visited
-                    if (n && n.distance === MAX_DIST && !n?.solid) {
-                        n.distance = (t.distance || 0) + 1;
-                        queue.push(addXY(kernel[i], q));
-                    }
-                });
-                last2 = q;
-                yield;
-            }
+            // calc distance from that point
+            const last = yield* calcDistance(state.maze, [start], "distance");
+            // calc distance from that new fartheset point `last`
+            const last2 = yield* calcDistance(state.maze, [last], "distance");
             // plot the path form last2 to last by moving to neighbours with lower distance
             let cur: XY = [last2[0], last2[1]];
             while (!equalsXY(cur, last)) {
@@ -89,29 +82,16 @@ export class FarthestLayer extends LayerLogic {
             state.end = cur;
             yield;
             // set the path as distance 0 and add to the queue, the others are max
-            queue = [];
+            const mainPath: XY[] = [];
             state.maze.forEach((x, y, t) => {
                 if (t.mainPath) {
-                    t.distance = 0;
-                    queue.push([x, y]);
-                } else {
-                    t.distance = MAX_DIST;
+                    mainPath.push([x, y]);
                 }
             });
             // calc distance from the path
-            while (queue.length > 0) {
-                const q = queue.shift() as XY;
-                const t = state.maze.get(q[0], q[1]) as Tile;
-                state.maze.getKernel(q, kernel).forEach((n, i) => {
-                    // if not visited
-                    if (n && n.distance === MAX_DIST && !n?.solid) {
-                        n.distance = (t.distance || 0) + 1;
-                        queue.push(addXY(kernel[i], q));
-                    }
-                });
-                state.farthestFromPath = [q[0], q[1]];
-                yield;
-            }
+
+            state.farthestFromPath = yield* calcDistance(state.maze, mainPath, "distance");
+            yield;
         };
     }
 
