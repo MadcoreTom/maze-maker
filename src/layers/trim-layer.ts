@@ -10,7 +10,7 @@ export class EndTrimmerLayer extends LayerLogic {
                 name: "iterations",
                 min: 0,
                 max: 100,
-                value: 4,
+                value: 2,
                 type: "number",
             },
         ]);
