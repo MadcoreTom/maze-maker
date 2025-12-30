@@ -11,7 +11,7 @@ export class RoomLayer extends LayerLogic {
                 name: "Rooms",
                 min: 0,
                 max: 100,
-                value: 4,
+                value: 9,
                 type: "number",
             },
             {

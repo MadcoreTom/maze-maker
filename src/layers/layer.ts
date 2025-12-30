@@ -1,4 +1,4 @@
-import type { State, Tile } from "../state";
+import { cloneTile, type State, type Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import type { Rect, XY } from "../util/xy";
 
@@ -16,7 +16,7 @@ export abstract class LayerLogic {
     }
     protected cloneState(state: State): State {
         return {
-            maze: state.maze.clone((x, y, v) => ({ ...v })),
+            maze: state.maze.clone((x, y, v) => cloneTile(v)),
             queue: state.queue ? [...state.queue] : undefined,
         };
     }

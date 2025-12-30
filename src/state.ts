@@ -12,7 +12,6 @@ export type Tile = {
 
 export type State = {
     maze: Array2<Tile>;
-    // generatorStack: MyGenerator[],
     queue?: [number, number][];
     start?: XY;
     end?: XY;
@@ -22,6 +21,11 @@ export type State = {
 export function createInitialState(): State {
     return {
         maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside" })),
-        // generatorStack: []
     };
+}
+
+export function cloneTile(t: Tile): Tile {
+    return {
+        ...t
+    }
 }

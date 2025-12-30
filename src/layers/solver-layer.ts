@@ -42,7 +42,7 @@ export class MazeSolverLayer extends LayerLogic {
         this.internalInit();
         const state = this.state!;
         return function* () {
-            state.queue = state.queue || [];
+            state.queue = state.queue || []; // TODO move the queue out of state
             // todo pop off queue, check opposing nonsolids are different rooms, if so,set min(r1,r2) to max(r1,r2) . yield;
             let cur = state.queue.shift();
             while (cur) {
@@ -61,6 +61,7 @@ export class MazeSolverLayer extends LayerLogic {
                         }
                     });
                     state.maze.set(x, y, { solid: false, roomId: high, type: "room" });
+                    yield;
                 }
                 // vertical
                 else if (up && !up.solid && down && !down.solid && up.roomId !== down.roomId) {
@@ -72,11 +73,11 @@ export class MazeSolverLayer extends LayerLogic {
                         }
                     });
                     state.maze.set(x, y, { solid: false, roomId: high, type: "hall" });
+                    yield;
                 }
-                yield; // todo if there isnt a match, dont yeilf unless it happens a bunch
-
                 cur = state.queue.shift();
             }
+            yield;
         };
     }
 }
