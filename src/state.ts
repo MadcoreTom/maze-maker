@@ -6,7 +6,7 @@ export type Tile = {
     roomId: number;
     type: "wall" | "outside" | "hall" | "room" | "door";
     distance?: number;
-    distanceFromPath?: number,
+    distanceFromPath?: number;
     mainPath?: true;
 };
 
