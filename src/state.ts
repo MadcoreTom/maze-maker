@@ -12,7 +12,6 @@ export type Tile = {
 
 export type State = {
     maze: Array2<Tile>;
-    queue?: [number, number][];
     start?: XY;
     end?: XY;
     farthestFromPath?: XY;
@@ -27,5 +26,12 @@ export function createInitialState(): State {
 export function cloneTile(t: Tile): Tile {
     return {
         ...t
+    }
+}
+
+export function cloneState(s: State): State {
+    return {
+        ...s,
+        maze: s.maze.clone((x, y, t) => cloneTile(t))
     }
 }

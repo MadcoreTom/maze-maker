@@ -14,23 +14,8 @@ export class MazeSolverLayer extends LayerLogic {
     }
     private internalInit() {
         const state = this.state as State;
-        const queue: [number, number][] = [];
-        state.maze.forEach((x, y, v) => {
-            const left = state.maze.get(x - 1, y)?.solid;
-            const right = state.maze.get(x + 1, y)?.solid;
-            const up = state.maze.get(x, y - 1)?.solid;
-            const down = state.maze.get(x, y + 1)?.solid;
-            const count = [left, right, up, down].filter(c => c === false).length;
-            if (count === 2 && (x % 2 === 1 || y % 2 === 1)) {
-                queue.push([x, y]);
-            }
-        });
-        console.log("queue", queue.length);
-        // shuffle
-        shuffle(queue);
         this.state = {
             maze: new Array2<Tile>(state.maze.w, state.maze.h, (x, y) => ({ ...(state.maze.get(x, y) as Tile) })),
-            queue,
         };
     }
     render(ctx: CanvasRenderingContext2D) {
@@ -42,9 +27,22 @@ export class MazeSolverLayer extends LayerLogic {
         this.internalInit();
         const state = this.state!;
         return function* () {
-            state.queue = state.queue || []; // TODO move the queue out of state
+            const queue: [number, number][] = [];
+            state.maze.forEach((x, y, v) => {
+                const left = state.maze.get(x - 1, y)?.solid;
+                const right = state.maze.get(x + 1, y)?.solid;
+                const up = state.maze.get(x, y - 1)?.solid;
+                const down = state.maze.get(x, y + 1)?.solid;
+                const count = [left, right, up, down].filter(c => c === false).length;
+                if (count === 2 && (x % 2 === 1 || y % 2 === 1)) {
+                    queue.push([x, y]);
+                }
+            });
+            console.log("queue", queue.length);
+            // shuffle
+            shuffle(queue);
             // todo pop off queue, check opposing nonsolids are different rooms, if so,set min(r1,r2) to max(r1,r2) . yield;
-            let cur = state.queue.shift();
+            let cur = queue.shift();
             while (cur) {
                 const [x, y] = cur;
                 const left = state.maze.get(x - 1, y);
@@ -75,7 +73,7 @@ export class MazeSolverLayer extends LayerLogic {
                     state.maze.set(x, y, { solid: false, roomId: high, type: "hall" });
                     yield;
                 }
-                cur = state.queue.shift();
+                cur = queue.shift();
             }
             yield;
         };

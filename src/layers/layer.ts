@@ -1,4 +1,4 @@
-import { cloneTile, type State, type Tile } from "../state";
+import { cloneState, cloneTile, type State, type Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import type { Rect, XY } from "../util/xy";
 
@@ -11,14 +11,8 @@ export abstract class LayerLogic {
         public readonly params: Parameter[],
     ) {}
     public init(state: State) {
-        this.state = this.cloneState(state);
+        this.state = cloneState(state);
         console.log("INIT", state, " -> ", this.state);
-    }
-    protected cloneState(state: State): State {
-        return {
-            maze: state.maze.clone((x, y, v) => cloneTile(v)),
-            queue: state.queue ? [...state.queue] : undefined,
-        };
     }
     abstract apply(): ReturnsGenerator;
     abstract render(ctx: CanvasRenderingContext2D);
