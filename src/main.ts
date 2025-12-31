@@ -1,7 +1,7 @@
 import { DraggableNumberInput } from "./draggable-number-input";
 import { applyStyle, createElement } from "./element-util";
 import { LayerComponent } from "./layer-component";
-import { L1 } from "./layers";
+import { ALL_LAYERS, L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { createInitialState } from "./state";
 import type { MyGenerator } from "./types";
@@ -9,6 +9,7 @@ import type { MyGenerator } from "./types";
 export class MazeComponent extends HTMLElement {
     private ctx: CanvasRenderingContext2D;
     private curGenerator: null | [LayerLogic, MyGenerator] = null;
+    private layerElements: LayerComponent[] = [];
 
     connectedCallback() {
         const canvas = document.createElement("canvas");
@@ -32,6 +33,7 @@ export class MazeComponent extends HTMLElement {
         while (cur) {
             const elem = document.createElement("my-layercomponent");
             elem.setAttribute("type", cur.title);
+            this.layerElements.push(elem as LayerComponent);
             // this.state.generatorStack.push(layer.apply(layer, this.state)())
             layerContainer.appendChild(elem);
 
@@ -56,9 +58,11 @@ export class MazeComponent extends HTMLElement {
                 if (nextLayer) {
                     nextLayer.init(this.curGenerator[0].state || createInitialState());
                     this.curGenerator = [nextLayer, nextLayer.apply()()];
+                    this.updateStatuses()
                 } else {
                     this.curGenerator = null;
                     console.log("Done");
+                    this.updateStatuses()
                     return;
                 }
             }
@@ -68,6 +72,19 @@ export class MazeComponent extends HTMLElement {
             window.requestAnimationFrame(n => this.tick(n));
         } else {
             console.log("done");
+        }
+    }
+
+    private updateStatuses() {
+        let status = "complete";
+        for (let elem of this.layerElements) {
+            if (this.curGenerator && ALL_LAYERS[elem.getAttribute("type") as string] === this.curGenerator[0]) {
+                status = "active";
+            }
+            elem.setAttribute("status", status);
+            if (status === "active") {
+                status = "todo";
+            }
         }
     }
 
@@ -82,6 +99,7 @@ export class MazeComponent extends HTMLElement {
         );
         layer.init(layer.prev?.state || createInitialState());
         this.curGenerator = [layer, layer.apply()()];
+        this.updateStatuses()
         if (triggerAnimation) {
             window.requestAnimationFrame(n => this.tick(n));
         }

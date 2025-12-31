@@ -119,4 +119,26 @@ export class LayerComponent extends HTMLElement {
             this.parent.refreshLayer(this.layer);
         }
     }
+
+    static get observedAttributes() {
+        return ['status'];
+    }
+
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+        if (name === 'status' && newValue !== oldValue) {
+            console.log(`Status change of ${this.layer?.title || "?"} from ${oldValue} to ${newValue}`);
+            switch(newValue){
+                case "active":
+                    this.style.border = "4px solid cyan";
+                    break;
+                case "complete":
+                    this.style.border = "4px solid limegreen";
+                    break;
+                case "todo":
+                default:
+                    this.style.border = "4px dotted yellow";
+                    break;
+            }
+        }
+    }
 }
