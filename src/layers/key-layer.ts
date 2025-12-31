@@ -1,9 +1,18 @@
 import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST } from "../util/distance";
-import { equalsXY, type XY } from "../util/xy";
+import { equalsXY, type Rect, type XY } from "../util/xy";
 import { PALETTE } from "./colour";
 import { LayerLogic, TileRenderer } from "./layer";
+import { Renderer } from "./render";
+
+class MyRenderer extends Renderer {
+    public renderFloor(ctx: CanvasRenderingContext2D, rect: Rect, tile: Tile): void {
+        const color = tile.mainPath ? "white" : `hsl(${(tile.distanceFromPath || 0) * 3}, 100%, 50%)`;
+        this.rectangle(ctx, color, rect);
+    }
+}
+const RENDERER = new MyRenderer();
 
 export class KeyLayer extends LayerLogic {
     constructor() {
@@ -37,114 +46,6 @@ export class KeyLayer extends LayerLogic {
     }
 
     render(ctx: CanvasRenderingContext2D) {
-        function floorColour(tile: Tile): string {
-            if (tile.distanceFromPath !== undefined && tile.distanceFromPath !== MAX_DIST) {
-                return `hsl(${tile.distanceFromPath * 3}, 100%, 50%)`;
-            } else if (tile.distance !== undefined && tile.distance !== MAX_DIST) {
-                return `hsl(${tile.distance * 3}, 80%, 50%)`;
-            } else {
-                return colorMap[tile.type];
-            }
-        }
-
-        const renderItems: TileRenderer = (s, t, xy, rect) => {
-            if (t.items) {
-                if (t.items.key) {
-                    ctx.strokeStyle = "yellow";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(rect.left + rect.width * 0.75, rect.top + rect.height * 0.5, rect.height / 4, Math.PI, Math.PI * 3);
-                    ctx.lineTo(rect.left + rect.width * 0.25, rect.top + rect.height / 2);
-                    ctx.lineTo(rect.left + rect.width * 0.25, rect.top + rect.height / 3);
-                    ctx.stroke();
-                }
-            }
-        };
-
-        if (this.state) {
-            const state = this.state;
-            this.renderTiles(
-                ctx,
-                state,
-                { wallWidth: 0.2, wallHeight: 0.4 },
-                {
-                    corner: (s, t, xy, rect) => {
-                        if (t.type === "wall") {
-                            const below = state.maze.get(xy[0], xy[1] + 1);
-                            if (below && below.type === "wall") {
-                                ctx.fillStyle = PALETTE.lightGrey;
-                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                            } else if (!below || below.type === "outside") {
-                                ctx.fillStyle = "black";
-                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                                ctx.fillStyle = PALETTE.lightGrey;
-                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height / 2); // TODO rounding errors
-                            } else {
-                                ctx.fillStyle = colorMap[t.type];
-                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                                ctx.fillStyle = PALETTE.lightGrey;
-                                ctx.fillRect(rect.left, rect.top, rect.width, rect.height / 2); // TODO rounding errors
-                            }
-                        } else if (t.type === "outside") {
-                            ctx.fillStyle = "black";
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        } else {
-                            ctx.fillStyle = floorColour(t);
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        }
-                        renderItems(s, t, xy, rect);
-                    },
-                    hWall: (s, t, xy, rect) => {
-                        if (t.type === "wall") {
-                            const below = state.maze.get(xy[0], xy[1] + 1);
-                            if (!below || below.type === "outside") {
-                                ctx.fillStyle = "black";
-                            } else {
-                                ctx.fillStyle = colorMap[t.type];
-                            }
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                            ctx.fillStyle = PALETTE.lightGrey;
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height / 2); // TODO rounding errors
-                        } else if (t.type === "outside") {
-                            ctx.fillStyle = "black";
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        } else {
-                            ctx.fillStyle = floorColour(t);
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        }
-                        renderItems(s, t, xy, rect);
-                    },
-                    vWall: (s, t, xy, rect) => {
-                        if (t.type === "wall") {
-                            ctx.fillStyle = PALETTE.lightGrey;
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        } else if (t.type === "outside") {
-                            ctx.fillStyle = "black";
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        } else {
-                            ctx.fillStyle = floorColour(t);
-                            ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        }
-                        renderItems(s, t, xy, rect);
-                    },
-                    tile: (s, t, xy, rect) => {
-                        ctx.fillStyle = floorColour(t);
-                        if (t.mainPath) {
-                            ctx.fillStyle = "white";
-                        }
-                        ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-                        renderItems(s, t, xy, rect);
-                    },
-                },
-            );
-        }
+        RENDERER.render(ctx, this.state as State);
     }
 }
-
-const colorMap = {
-    hall: "limegreen",
-    outside: PALETTE.black,
-    room: "orange",
-    wall: PALETTE.darkGrey,
-    door: "red",
-};

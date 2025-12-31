@@ -121,13 +121,13 @@ export class LayerComponent extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['status'];
+        return ["status"];
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name === 'status' && newValue !== oldValue) {
+        if (name === "status" && newValue !== oldValue) {
             console.log(`Status change of ${this.layer?.title || "?"} from ${oldValue} to ${newValue}`);
-            switch(newValue){
+            switch (newValue) {
                 case "active":
                     this.style.border = "4px solid cyan";
                     break;

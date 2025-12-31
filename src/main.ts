@@ -58,11 +58,11 @@ export class MazeComponent extends HTMLElement {
                 if (nextLayer) {
                     nextLayer.init(this.curGenerator[0].state || createInitialState());
                     this.curGenerator = [nextLayer, nextLayer.apply()()];
-                    this.updateStatuses()
+                    this.updateStatuses();
                 } else {
                     this.curGenerator = null;
                     console.log("Done");
-                    this.updateStatuses()
+                    this.updateStatuses();
                     return;
                 }
             }
@@ -77,7 +77,7 @@ export class MazeComponent extends HTMLElement {
 
     private updateStatuses() {
         let status = "complete";
-        for (let elem of this.layerElements) {
+        for (const elem of this.layerElements) {
             if (this.curGenerator && ALL_LAYERS[elem.getAttribute("type") as string] === this.curGenerator[0]) {
                 status = "active";
             }
@@ -99,7 +99,7 @@ export class MazeComponent extends HTMLElement {
         );
         layer.init(layer.prev?.state || createInitialState());
         this.curGenerator = [layer, layer.apply()()];
-        this.updateStatuses()
+        this.updateStatuses();
         if (triggerAnimation) {
             window.requestAnimationFrame(n => this.tick(n));
         }

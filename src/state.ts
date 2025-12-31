@@ -15,14 +15,14 @@ export type State = {
     maze: Array2<Tile>;
     start?: XY;
     end?: XY;
-    farthestFromPath?: XY
+    farthestFromPath?: XY;
 };
 
 // Note: this is a funny style, but avoids scanning arrays
 export type Items = {
-    key?: true,
-    door?: "locked" | "open" | "closed"
-}
+    key?: true;
+    door?: "locked" | "open" | "closed";
+};
 
 export function createInitialState(): State {
     return {
@@ -33,13 +33,13 @@ export function createInitialState(): State {
 export function cloneTile(t: Tile): Tile {
     return {
         ...t,
-        items: {...t.items}
-    }
+        items: { ...t.items },
+    };
 }
 
 export function cloneState(s: State): State {
     return {
         ...s,
-        maze: s.maze.clone((x, y, t) => cloneTile(t))
-    }
+        maze: s.maze.clone((x, y, t) => cloneTile(t)),
+    };
 }
