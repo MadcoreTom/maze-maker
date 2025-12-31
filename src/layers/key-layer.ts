@@ -3,7 +3,7 @@ import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST } from "../util/distance";
 import { equalsXY, type XY } from "../util/xy";
 import { PALETTE } from "./colour";
-import { LayerLogic } from "./layer";
+import { LayerLogic, TileRenderer } from "./layer";
 
 export class KeyLayer extends LayerLogic {
     constructor() {
@@ -24,6 +24,14 @@ export class KeyLayer extends LayerLogic {
             // calc distance from the path
 
             state.farthestFromPath = yield* calcDistance(state.maze, mainPath, "distanceFromPath");
+            // TODO maybe remove farthestFromPath since we can use items
+            const t = state.maze.get(state.farthestFromPath[0], state.farthestFromPath[1]);
+            if (t) {
+                if (!t.items) {
+                    t.items = {};
+                }
+                t.items.key = true;
+            }
             yield;
         };
     }
@@ -38,6 +46,20 @@ export class KeyLayer extends LayerLogic {
                 return colorMap[tile.type];
             }
         }
+
+        const renderItems: TileRenderer = (s, t, xy, rect) => {
+            if (t.items) {
+                if (t.items.key) {
+                    ctx.strokeStyle = "yellow";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(rect.left + rect.width * 0.75, rect.top + rect.height * 0.5, rect.height / 4, Math.PI, Math.PI * 3);
+                    ctx.lineTo(rect.left + rect.width * 0.25, rect.top + rect.height / 2);
+                    ctx.lineTo(rect.left + rect.width * 0.25, rect.top + rect.height / 3);
+                    ctx.stroke();
+                }
+            }
+        };
 
         if (this.state) {
             const state = this.state;
@@ -70,6 +92,7 @@ export class KeyLayer extends LayerLogic {
                             ctx.fillStyle = floorColour(t);
                             ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
                         }
+                        renderItems(s, t, xy, rect);
                     },
                     hWall: (s, t, xy, rect) => {
                         if (t.type === "wall") {
@@ -89,6 +112,7 @@ export class KeyLayer extends LayerLogic {
                             ctx.fillStyle = floorColour(t);
                             ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
                         }
+                        renderItems(s, t, xy, rect);
                     },
                     vWall: (s, t, xy, rect) => {
                         if (t.type === "wall") {
@@ -101,16 +125,15 @@ export class KeyLayer extends LayerLogic {
                             ctx.fillStyle = floorColour(t);
                             ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
                         }
+                        renderItems(s, t, xy, rect);
                     },
                     tile: (s, t, xy, rect) => {
                         ctx.fillStyle = floorColour(t);
                         if (t.mainPath) {
                             ctx.fillStyle = "white";
                         }
-                        if (s.farthestFromPath && equalsXY(s.farthestFromPath, xy)) {
-                            ctx.fillStyle = "yellow";
-                        }
                         ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+                        renderItems(s, t, xy, rect);
                     },
                 },
             );

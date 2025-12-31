@@ -8,14 +8,21 @@ export type Tile = {
     distance?: number;
     distanceFromPath?: number;
     mainPath?: true;
+    items?: Items;
 };
 
 export type State = {
     maze: Array2<Tile>;
     start?: XY;
     end?: XY;
-    farthestFromPath?: XY;
+    farthestFromPath?: XY
 };
+
+// Note: this is a funny style, but avoids scanning arrays
+export type Items = {
+    key?: true,
+    door?: "locked" | "open" | "closed"
+}
 
 export function createInitialState(): State {
     return {
@@ -25,7 +32,8 @@ export function createInitialState(): State {
 
 export function cloneTile(t: Tile): Tile {
     return {
-        ...t
+        ...t,
+        items: {...t.items}
     }
 }
 
