@@ -45,7 +45,7 @@ export class Renderer {
                 case "room":
                 case "hall":
                 case "door":
-                    this.renderFloor(ctx, rect, t);
+                    this.renderFloor(ctx, rect, t, [x, y]);
                     break;
             }
             if (t.items) {
@@ -54,8 +54,8 @@ export class Renderer {
         });
     }
 
-    public renderFloor(ctx: CanvasRenderingContext2D, rect: Rect, tile: Tile) {
-        this.rectangle(ctx, "magenta", rect);
+    public renderFloor(ctx: CanvasRenderingContext2D, rect: Rect, tile: Tile, xy: XY) {
+        this.rectangle(ctx, "#312", rect);
     }
 
     public renderTileOutside(ctx: CanvasRenderingContext2D, rect: Rect) {
@@ -96,6 +96,31 @@ export class Renderer {
                 ctx.lineTo(rect.left + rect.width * 0.25, rect.top + rect.height / 3);
                 ctx.stroke();
             }
+
+            if (t.items.door) {
+                const colour = { "open": "limegreen", "closed": "yellow", "locked": "red" }[t.items.door];
+                this.rectangle(ctx, colour, rect);
+            }
+        }
+    }
+}
+
+
+export class PathRenderer extends Renderer {
+    public constructor(private distanceProperty: "distance" | "distanceFromPath", private maxDist: number, private pathProperty: "mainPath") {
+        super();
+    }
+
+    public renderFloor(ctx: CanvasRenderingContext2D, rect: Rect, tile: Tile, xy: XY): void {
+        let colour = tile[this.distanceProperty] === this.maxDist ? PALETTE.purple : `hsl(${(tile[this.distanceProperty] || 0) * 4}, 100%, 50%)`;
+        this.rectangle(ctx, colour, rect);
+        if (tile[this.pathProperty] && xy[0] % 2 == 1 && xy[1] % 2 == 1) {
+            colour = `rgba(255,255,255,0.8)`;
+            this.rectangle(ctx, colour, { left: rect.left + 1, top: rect.top + 1, width: rect.width - 2, height: rect.height - 2 });
+        }
+        if (tile[this.pathProperty] && tile.distance == 0) {
+            ctx.fillStyle = PALETTE.black;
+            ctx.fillText("S", rect.left + rect.width / 2, rect.top + rect.height / 2);
         }
     }
 }

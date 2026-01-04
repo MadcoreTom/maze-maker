@@ -1,18 +1,13 @@
-import type { State, Tile } from "../state";
+import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST, tracePath } from "../util/distance";
 import { pickRandom } from "../util/random";
-import type { Rect, XY } from "../util/xy";
+import type {  XY } from "../util/xy";
 import { LayerLogic } from "./layer";
-import { Renderer } from "./render";
+import { PathRenderer } from "./render";
 
-class MyRenderer extends Renderer {
-    public renderFloor(ctx: CanvasRenderingContext2D, rect: Rect, tile: Tile): void {
-        const color = tile.mainPath ? "white" : `hsl(${(tile.distance || 0) * 3}, 100%, 50%)`;
-        this.rectangle(ctx, color, rect);
-    }
-}
-const RENDERER = new MyRenderer();
+
+const RENDERER = new PathRenderer("distance", MAX_DIST, "mainPath");
 
 export class FarthestLayer extends LayerLogic {
     public constructor() {

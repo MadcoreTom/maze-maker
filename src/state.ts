@@ -8,6 +8,7 @@ export type Tile = {
     distance?: number;
     distanceFromPath?: number;
     mainPath?: true;
+    mainPathBeforeDoor?: true;
     items?: Items;
 };
 
