@@ -2,11 +2,11 @@ import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
-import { Renderer } from "./render";
+import { PathRenderer } from "./render";
 
 export class DoorLayer extends LayerLogic {
     constructor() {
-        super("Doors", [], new Renderer());
+        super("Doors", [], new PathRenderer("distance", 99999, "mainPath"));
     }
     apply(): ReturnsGenerator {
         const state = this.state as State;
