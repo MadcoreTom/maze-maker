@@ -3,11 +3,11 @@ import { applyStyle, createElement } from "./element-util";
 import { LayerComponent } from "./layer-component";
 import { ALL_LAYERS, L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
-import { createInitialState } from "./state";
+import { createInitialState, type State } from "./state";
 import type { MyGenerator } from "./types";
 
 export class MazeComponent extends HTMLElement {
-    private ctx: CanvasRenderingContext2D;
+    private ctx?: CanvasRenderingContext2D;
     private curGenerator: null | [LayerLogic, MyGenerator] = null;
     private layerElements: LayerComponent[] = [];
 
@@ -67,7 +67,7 @@ export class MazeComponent extends HTMLElement {
                 }
             }
 
-            this.curGenerator[0].render(this.ctx);
+            this.curGenerator[0].renderer.render(this.ctx!, this.curGenerator[0].state as State);
 
             window.requestAnimationFrame(n => this.tick(n));
         } else {

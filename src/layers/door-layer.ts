@@ -1,23 +1,22 @@
-import { State, Tile } from "../state";
-import { ReturnsGenerator } from "../types";
-import { XY } from "../util/xy";
+import type { State, Tile } from "../state";
+import type { ReturnsGenerator } from "../types";
+import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
 import { Renderer } from "./render";
 
 export class DoorLayer extends LayerLogic {
-    private renderer = new Renderer();
     constructor() {
-        super("Doors", [])
+        super("Doors", [], new Renderer());
     }
     apply(): ReturnsGenerator {
         const state = this.state as State;
         return function* () {
             const doors: XY[] = [];
             const mainPath: XY[] = [];
-            
+
             state.maze.forEach((x, y, t) => {
                 if (t.mainPath) {
-                    console.log("mp", t.distance, x, y)
+                    console.log("mp", t.distance, x, y);
                     mainPath[t.distance as number] = [x, y];
                 } else if (t.type === "door") {
                     doors.push([x, y]);
@@ -36,7 +35,7 @@ export class DoorLayer extends LayerLogic {
             }
 
             // cur tracks our position along the main path
-            const start = Math.floor(mainPath.length / 2 + Math.random() * mainPath.length / 2); // random in the second half
+            const start = Math.floor(mainPath.length / 2 + (Math.random() * mainPath.length) / 2); // random in the second half
             let cur = start;
             let found: number | undefined;
             while (!found && cur < mainPath.length) {
@@ -64,29 +63,24 @@ export class DoorLayer extends LayerLogic {
                 const d = mainPath[i];
                 const t = state.maze.get(d[0], d[1]) as Tile;
                 // TODO set a startPath property too, for the key layer
-                if(t.type === "door"){
-                    if (!t.items){
+                if (t.type === "door") {
+                    if (!t.items) {
                         t.items = {};
                     }
-                    if (found && i == found) {
+                    if (found && i === found) {
                         t.items.door = "locked";
                         t.solid = true;
                     } else {
                         t.items.door = Math.random() < 0.2 ? "open" : "closed";
                     }
                 }
-                if(!found || i < found){
+                if (!found || i < found) {
                     t.mainPathBeforeDoor = true;
                 }
                 yield;
             }
 
             // TODO track "main path before door"
-
-        }
-    }
-
-    render(ctx: CanvasRenderingContext2D) {
-        this.renderer.render(ctx, this.state as State);
+        };
     }
 }

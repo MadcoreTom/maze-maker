@@ -1,4 +1,3 @@
-import { renderInitState } from "../layers";
 import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { Array2 } from "../util/array2";
@@ -35,10 +34,5 @@ export class FirstLayer extends LayerLogic {
                 return { solid: solid, roomId: !solid ? room++ : 0, type: "outside" };
             });
         };
-    }
-    render(ctx: CanvasRenderingContext2D) {
-        if (this.state) {
-            renderInitState(ctx, this.state);
-        }
     }
 }

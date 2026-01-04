@@ -1,4 +1,3 @@
-import { renderRoomIds } from "../layers";
 import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import type { Rect } from "../util/xy";
@@ -32,11 +31,6 @@ export class RoomLayer extends LayerLogic {
     }
     protected createInitialState(): State {
         throw new Error("RoomLayer requires an input state");
-    }
-    render(ctx: CanvasRenderingContext2D) {
-        if (this.state) {
-            renderRoomIds(ctx, this.state);
-        }
     }
     private pickRoom(state: State, maxWidth: number, maxHeight: number): Rect & { roomId: number } {
         const attempts = 20;

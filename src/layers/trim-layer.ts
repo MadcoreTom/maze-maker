@@ -1,4 +1,3 @@
-import { renderInitState } from "../layers";
 import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { LayerLogic } from "./layer";
@@ -17,11 +16,6 @@ export class EndTrimmerLayer extends LayerLogic {
     }
     protected createInitialState(): State {
         throw new Error("EndTrimmerLayer requires an input state");
-    }
-    render(ctx: CanvasRenderingContext2D) {
-        if (this.state) {
-            renderInitState(ctx, this.state);
-        }
     }
     apply(): ReturnsGenerator {
         const state = this.state!;

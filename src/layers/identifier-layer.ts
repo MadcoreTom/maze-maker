@@ -76,39 +76,4 @@ export class IdentifierLayer extends LayerLogic {
             yield;
         };
     }
-    render(ctx: CanvasRenderingContext2D) {
-        if (this.state) {
-            const state = this.state;
-            ctx.fillStyle = "red";
-            const w = 600,
-                h = 600;
-            ctx.fillRect(0, 0, w, h);
-            const s = Math.floor(Math.min(w / state.maze.w, h / state.maze.h)) * 2;
-            const wa = Math.ceil(s * 0.2);
-            const f = s - wa;
-            // vertical
-            const vwa = Math.ceil(s * 0.4);
-            const vf = s - vwa;
-            state.maze.forEach((x, y, v) => {
-                ctx.fillStyle = colorMap[v.type];
-                if (v.type === "door") {
-                    console.log("door");
-                }
-                ctx.fillRect(
-                    Math.floor(x / 2) * f + Math.ceil(x / 2) * wa,
-                    Math.floor(y / 2) * vf + Math.ceil(y / 2) * vwa,
-                    x % 2 === 0 ? wa : f,
-                    y % 2 === 0 ? vwa : vf,
-                );
-            });
-        }
-    }
 }
-
-const colorMap = {
-    hall: "limegreen",
-    outside: "navy",
-    room: "orange",
-    wall: "blue",
-    door: "magenta",
-};

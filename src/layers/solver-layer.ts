@@ -1,4 +1,3 @@
-import { renderRoomIds } from "../layers";
 import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { Array2 } from "../util/array2";
@@ -17,11 +16,6 @@ export class MazeSolverLayer extends LayerLogic {
         this.state = {
             maze: new Array2<Tile>(state.maze.w, state.maze.h, (x, y) => ({ ...(state.maze.get(x, y) as Tile) })),
         };
-    }
-    render(ctx: CanvasRenderingContext2D) {
-        if (this.state) {
-            renderRoomIds(ctx, this.state);
-        }
     }
     apply(): ReturnsGenerator {
         this.internalInit();

@@ -1,15 +1,13 @@
 import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST } from "../util/distance";
-import { type XY } from "../util/xy";
+import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
 import { PathRenderer } from "./render";
 
-const RENDERER = new PathRenderer("distanceFromPath", MAX_DIST, "mainPath");
-
 export class KeyLayer extends LayerLogic {
     constructor() {
-        super("Key", []);
+        super("Key", [], new PathRenderer("distanceFromPath", MAX_DIST, "mainPath"));
     }
 
     apply(): ReturnsGenerator {
@@ -36,9 +34,5 @@ export class KeyLayer extends LayerLogic {
             }
             yield;
         };
-    }
-
-    render(ctx: CanvasRenderingContext2D) {
-        RENDERER.render(ctx, this.state as State);
     }
 }

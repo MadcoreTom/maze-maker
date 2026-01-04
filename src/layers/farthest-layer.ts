@@ -2,16 +2,13 @@ import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST, tracePath } from "../util/distance";
 import { pickRandom } from "../util/random";
-import type {  XY } from "../util/xy";
+import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
 import { PathRenderer } from "./render";
 
-
-const RENDERER = new PathRenderer("distance", MAX_DIST, "mainPath");
-
 export class FarthestLayer extends LayerLogic {
     public constructor() {
-        super("Farthest", []);
+        super("Farthest", [], new PathRenderer("distance", MAX_DIST, "mainPath"));
     }
 
     apply(): ReturnsGenerator {
@@ -39,9 +36,5 @@ export class FarthestLayer extends LayerLogic {
             state.end = last;
             yield;
         };
-    }
-
-    render(ctx: CanvasRenderingContext2D) {
-        RENDERER.render(ctx, this.state as State);
     }
 }
