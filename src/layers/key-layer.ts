@@ -1,9 +1,9 @@
+import { PathRenderer } from "../render/render-progress";
 import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST } from "../util/distance";
 import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
-import { PathRenderer } from "./render";
 
 export class KeyLayer extends LayerLogic {
     constructor() {

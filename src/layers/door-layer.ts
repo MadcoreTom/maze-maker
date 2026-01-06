@@ -1,8 +1,8 @@
+import { PathRenderer } from "../render/render-progress";
 import type { State, Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
-import { PathRenderer } from "./render";
 
 export class DoorLayer extends LayerLogic {
     constructor() {
@@ -16,13 +16,11 @@ export class DoorLayer extends LayerLogic {
 
             state.maze.forEach((x, y, t) => {
                 if (t.mainPath) {
-                    console.log("mp", t.distance, x, y);
                     mainPath[t.distance as number] = [x, y];
                 } else if (t.type === "door") {
                     doors.push([x, y]);
                 }
             });
-            console.log("MP", mainPath);
 
             // regular doors
             for (const d of doors) {

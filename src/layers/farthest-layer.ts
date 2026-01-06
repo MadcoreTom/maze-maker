@@ -1,10 +1,10 @@
+import { PathRenderer } from "../render/render-progress";
 import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST, tracePath } from "../util/distance";
 import { pickRandom } from "../util/random";
 import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
-import { PathRenderer } from "./render";
 
 export class FarthestLayer extends LayerLogic {
     public constructor() {

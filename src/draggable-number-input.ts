@@ -1,6 +1,6 @@
 import { applyStyle } from "./element-util";
 
-export class DraggableNumberInput extends HTMLElement {
+export class NumberInput extends HTMLElement {
     private input: HTMLInputElement;
     private label: HTMLLabelElement;
     private labelText: string;

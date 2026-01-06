@@ -1,12 +1,12 @@
-import { ALL_LAYERS } from "./layers";
-import { MazeComponent } from "./main";
-import "./draggable-number-input";
 import { applyStyle, createElement } from "./element-util";
+import { ALL_LAYERS } from "./layers";
 import type { LayerLogic } from "./layers/layer";
+import { MazeComponent } from "./main";
 
 export class LayerComponent extends HTMLElement {
     private layer: LayerLogic;
     private parent: MazeComponent;
+    private regen: HTMLButtonElement;
 
     private findParentMaze(): MazeComponent | undefined {
         let p = this.parentNode;
@@ -65,10 +65,10 @@ export class LayerComponent extends HTMLElement {
             console.log("Could not find layer");
         }
 
-        const regen = document.createElement("button");
-        regen.textContent = "↻";
-        regen.ariaLabel = "Re-generate";
-        applyStyle(regen, {
+        this.regen = document.createElement("button");
+        this.regen.textContent = "↻";
+        this.regen.ariaLabel = "Re-generate";
+        applyStyle(this.regen, {
             background: "#bbb",
             color: "black",
             height: "30px",
@@ -77,20 +77,22 @@ export class LayerComponent extends HTMLElement {
             borderRadius: "5px",
             cursor: "pointer",
         });
-        regen.addEventListener("mouseover", () => {
-            applyStyle(regen, { background: "limegreen" });
+        this.regen.addEventListener("mouseover", () => {
+            if (!this.regen.disabled) {
+                applyStyle(this.regen, { background: "limegreen" });
+            }
         });
-        regen.addEventListener("mouseout", () => {
-            applyStyle(regen, { background: "#bbb" });
+        this.regen.addEventListener("mouseout", () => {
+            applyStyle(this.regen, { background: "#bbb" });
         });
-        regen.addEventListener("click", () => {
+        this.regen.addEventListener("click", () => {
             this.onChange();
         });
-        this.appendChild(regen);
+        this.appendChild(this.regen);
     }
 
     private addNumberInput(parent: HTMLElement, title: string, min: number, max: number, defaultVal: number) {
-        const input = createElement("draggable-number-input", {
+        const input = createElement("number-input", {
             min,
             max,
             value: defaultVal,
@@ -130,13 +132,16 @@ export class LayerComponent extends HTMLElement {
             switch (newValue) {
                 case "active":
                     this.style.border = "4px solid cyan";
+                    this.regen.disabled = false;
                     break;
                 case "complete":
                     this.style.border = "4px solid limegreen";
+                    this.regen.disabled = false;
                     break;
                 case "todo":
                 default:
                     this.style.border = "4px dotted yellow";
+                    this.regen.disabled = true;
                     break;
             }
         }

@@ -1,8 +1,9 @@
 import type { State, Tile } from "../state";
 import type { Rect, XY } from "../util/xy";
 import { PALETTE } from "./colour";
+import type { Renderer } from "./render-interface";
 
-export class Renderer {
+export class BaseRenderer implements Renderer {
     private wallWidth = 0.2;
     private wallHeight = 0.4;
     public render(ctx: CanvasRenderingContext2D, state: State) {
@@ -109,7 +110,7 @@ export class Renderer {
     }
 }
 
-export class PathRenderer extends Renderer {
+export class PathRenderer extends BaseRenderer {
     public constructor(
         private distanceProperty: "distance" | "distanceFromPath",
         private maxDist: number,
@@ -140,7 +141,7 @@ export class PathRenderer extends Renderer {
     }
 }
 
-export class GridRenderer extends Renderer {
+export class GridRenderer extends BaseRenderer {
     protected renderTile(ctx: CanvasRenderingContext2D, x: number, y: number, state: State, tile: Tile, rect: Rect) {
         const colour = tile.solid ? PALETTE.black : `hsl(${tile.roomId * 3}, 75%, 50%)`;
         this.rectangle(ctx, colour, rect);

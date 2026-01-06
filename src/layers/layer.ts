@@ -1,7 +1,8 @@
-import { cloneState, cloneTile, type State, type Tile } from "../state";
+import type { Renderer } from "../render/render-interface";
+import { GridRenderer } from "../render/render-progress";
+import { cloneState, type State, type Tile } from "../state";
 import type { ReturnsGenerator } from "../types";
 import type { Rect, XY } from "../util/xy";
-import { GridRenderer, type Renderer } from "./render";
 
 export abstract class LayerLogic {
     public state?: State;

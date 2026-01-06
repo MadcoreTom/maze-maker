@@ -31,7 +31,7 @@ export function createInitialState(): State {
     };
 }
 
-export function cloneTile(t: Tile): Tile {
+function cloneTile(t: Tile): Tile {
     return {
         ...t,
         items: { ...t.items },

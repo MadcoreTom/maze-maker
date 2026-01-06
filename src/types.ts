@@ -1,3 +1,3 @@
-export type MyGenerator = Generator<any, void, unknown>;
+export type MyGenerator = Generator<unknown, void, unknown>;
 
 export type ReturnsGenerator = () => MyGenerator;
