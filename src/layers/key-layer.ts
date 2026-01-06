@@ -1,4 +1,5 @@
 import { PathRenderer } from "../render/render-progress";
+import { PixelRenderer } from "../render/renderer-pixel";
 import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
 import { calcDistance, MAX_DIST } from "../util/distance";
@@ -7,7 +8,8 @@ import { LayerLogic } from "./layer";
 
 export class KeyLayer extends LayerLogic {
     constructor() {
-        super("Key", [], new PathRenderer("distanceFromPath", MAX_DIST, "mainPath"));
+        super("Key", [], new PixelRenderer());
+        // super("Key", [], new PathRenderer("distanceFromPath", MAX_DIST, "mainPath"));
     }
 
     apply(): ReturnsGenerator {

@@ -67,6 +67,7 @@ export class LayerComponent extends HTMLElement {
 
         this.regen = document.createElement("button");
         this.regen.textContent = "↻";
+        this.regen.disabled = this.getAttribute("state") === "todo";
         this.regen.ariaLabel = "Re-generate";
         applyStyle(this.regen, {
             background: "#bbb",
