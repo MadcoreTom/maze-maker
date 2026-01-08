@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Game</title>
+</head>
+
+<body>
+    <my-game  class="viewport-container">
+        <style>
+            .grid-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(2, 1fr);
+                gap: 20px 10px;
+                height: 100vh;
+                max-height: 300px;
+            }
+
+            .grid-container button {
+                width: 100%;
+                height: 100%;
+                border: 2px solid black;
+                border-radius: 20px;
+                box-shadow: 0 10px 0 black;
+                cursor: pointer;
+                transition: margin 0.08s, box-shadow 0.08s;
+            }
+
+            .grid-container button:active {
+                box-shadow: 0 0 0 black;
+                margin-top: 10px;
+                margin-bottom: -10px;
+            }
+
+            /* Reset margins for a true full-screen feel */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f0f0f0; /* Neutral background for large screens */
+}
+
+/* The main container */
+.viewport-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  margin: 0 auto;
+  background-color: white;
+}
+
+/* The square red div */
+.square-red {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Ensures height equals width */
+  background-color: #ff4d4d;
+}
+
+/* The remaining yellow space */
+.fill-yellow {
+  flex-grow: 1; /* Takes up all leftover vertical space */
+  background-color: #ffeb3b;
+  min-height: 200px;
+}
+
+/* Desktop/Large Screen Override */
+@media (min-width: 600px) {
+  .viewport-container {
+    max-width: 600px;
+    /* Centering vertically if the screen is taller than the container */
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 90vh; /* Optional: adds some breathing room on desktop */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+}
+
+        </style>
+        <canvas class="square-red"></canvas>
+        <div style="flex-grow:1"></div>
+        <div class="grid-container" class="fill-yellow">
+            <div>1</div>
+            <div>
+                <button name="up">up</button>
+            </div>
+            <div>3</div>
+            <div>
+                <button name="left">left</button>
+
+            </div>
+            <div>
+                <button name="down">down</button>
+            </div>
+            <div>
+                <button name="right">right</button>
+            </div>
+        </div>
+        <div style="flex-grow:1"></div>
+    </my-game>
+    <script src="js/main.js"></script>
+    <!-- <a href="index.html">index</a> -->
+</body>
+
+</html>

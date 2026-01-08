@@ -1,5 +1,6 @@
 import { NumberInput } from "./draggable-number-input";
 import { applyStyle, createElement } from "./element-util";
+import { GameComponent } from "./game-component";
 import { LayerComponent } from "./layer-component";
 import { ALL_LAYERS, L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
@@ -111,3 +112,5 @@ customElements.define("my-layercomponent", LayerComponent);
 customElements.define("my-mazecomponent", MazeComponent);
 
 customElements.define("number-input", NumberInput);
+
+customElements.define("my-game", GameComponent);

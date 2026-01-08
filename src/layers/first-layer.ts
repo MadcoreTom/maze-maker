@@ -26,7 +26,7 @@ export class FirstLayer extends LayerLogic {
         const w = this.getNumberParam("Width", 10);
         const h = this.getNumberParam("Height", 10);
         const s = this.state as State;
-        console.log("potato", w, h, s);
+        console.log("potato", w, h, s, this);
         return function* () {
             let room = 1;
             s.maze = new Array2<Tile>(w, h, (x, y) => {
