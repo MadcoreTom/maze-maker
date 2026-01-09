@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Map Game</title>
 </head>
 
@@ -61,6 +61,13 @@ html {
   background-color: #ff4d4d;
 }
 
+/* Pixelated canvas rendering */
+canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
 /* The remaining yellow space */
 .fill-yellow {
   flex-grow: 1; /* Takes up all leftover vertical space */
@@ -69,14 +76,9 @@ html {
 }
 
 /* Desktop/Large Screen Override */
-@media (min-width: 600px) {
+@media (min-width: 760px) {
   .viewport-container {
-    max-width: 600px;
-    /* Centering vertically if the screen is taller than the container */
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 90vh; /* Optional: adds some breathing room on desktop */
+    max-width: 760px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 }
