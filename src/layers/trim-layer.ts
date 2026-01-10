@@ -13,10 +13,8 @@ export class EndTrimmerLayer extends LayerLogic {
                 type: "number",
             },
         ]);
-    }
-    protected createInitialState(): State {
-        throw new Error("EndTrimmerLayer requires an input state");
-    }
+    } 
+    
     apply(): ReturnsGenerator {
         const state = this.state!;
         const iterations = this.getNumberParam("iterations", 0) * 2;

@@ -29,9 +29,7 @@ export class RoomLayer extends LayerLogic {
             },
         ]);
     }
-    protected createInitialState(): State {
-        throw new Error("RoomLayer requires an input state");
-    }
+    
     private pickRoom(state: State, maxWidth: number, maxHeight: number): Rect & { roomId: number } {
         const attempts = 20;
         let w = 0;

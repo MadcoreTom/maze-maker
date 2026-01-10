@@ -8,17 +8,8 @@ export class MazeSolverLayer extends LayerLogic {
     constructor() {
         super("Solver", []);
     }
-    protected createInitialState(): State {
-        throw new Error("MazeSolverLayer requires an input state");
-    }
-    private internalInit() {
-        const state = this.state as State;
-        this.state = {
-            maze: new Array2<Tile>(state.maze.w, state.maze.h, (x, y) => ({ ...(state.maze.get(x, y) as Tile) })),
-        };
-    }
+
     apply(): ReturnsGenerator {
-        this.internalInit();
         const state = this.state!;
         return function* () {
             const queue: [number, number][] = [];

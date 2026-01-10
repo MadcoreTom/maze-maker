@@ -4,6 +4,23 @@ import { PixelRenderer } from "./render/renderer-pixel";
 import { createInitialState } from "./state";
 import { MyGenerator } from "./types";
 
+enum Control {
+    UP,
+    DOWN, 
+    LEFT, 
+    RIGHT
+}
+const KEY_MAP :{[keyCode:string]:Control} = {
+    "KeyA": Control.LEFT,
+    "ArrowLeft": Control.LEFT,
+    "KeyD": Control.RIGHT,
+    "ArrowRight": Control.RIGHT,
+    "KeyW": Control.UP,
+    "ArrowUp": Control.UP,
+    "KeyS": Control.DOWN,
+    "ArrowDown": Control.DOWN,
+}
+
 export class GameComponent extends HTMLElement {
     private ctx?: CanvasRenderingContext2D;
     private renderer = new PixelRenderer();
@@ -29,8 +46,11 @@ export class GameComponent extends HTMLElement {
             up: this.querySelector("[name=up]") as HTMLButtonElement,
             down: this.querySelector("[name=down]") as HTMLButtonElement,
         };
-
-        this.elements.right.textContent = ">>>>";
+        
+        this.elements.left.addEventListener("click", ()=>this.keyDown("ArrowLeft"));
+        this.elements.right.addEventListener("click", ()=>this.keyDown("ArrowRight"));
+        this.elements.up.addEventListener("click", ()=>this.keyDown("ArrowUp"));
+        this.elements.down.addEventListener("click", ()=>this.keyDown("ArrowDown"));
 
         this.elements.canvas.width = 600;
         this.elements.canvas.height = 600;
@@ -42,6 +62,7 @@ export class GameComponent extends HTMLElement {
         console.log("🍌 init", this.curLayer!.state);
 
         this.setupResizeObserver();
+        window.addEventListener("keydown",(e)=>this.keyDown(e.code))
 
         window.requestAnimationFrame(n => this.tick(n));
     }
@@ -97,9 +118,36 @@ export class GameComponent extends HTMLElement {
         }
     }
 
+    private keyDown(code:string){
+        console.log("Key", code, KEY_MAP[code],KEY_MAP[code] ? Control[KEY_MAP[code]] : "?");
+        const control = KEY_MAP[code];
+        if(control !== undefined && this.state){
+            switch(control){
+                case Control.LEFT:
+                    this.state.pos[0]  --;
+                    break;
+                case Control.RIGHT:
+                    this.state.pos[0] ++;
+                    break;
+                case Control.UP:
+                    this.state.pos[1] --;
+                    break;
+                case Control.DOWN:
+                    this.state.pos[1] ++;
+                    break;
+            }
+            console.log("POS", this.state.pos)
+        }
+    }
+
     private tick(time: number) {
         if (this.ctx && this.state) {
             this.renderer.render(this.ctx, this.state);
+        } else if(this.ctx &&this.curLayer){
+            this.ctx.fillStyle = "black";
+            this.ctx.fillRect(0,0,600,600);
+            this.ctx.fillStyle = "yellow";
+            this.ctx.fillText("Layer " + this.curLayer.title, 10, 10);
         }
 
         if (this.curLayer && this.curGenerator) {
