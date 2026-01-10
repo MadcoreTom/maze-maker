@@ -137,6 +137,7 @@ export class GameComponent extends HTMLElement {
                     break;
             }
             console.log("POS", this.state.pos)
+            window.requestAnimationFrame(n => this.tick(n));
         }
     }
 

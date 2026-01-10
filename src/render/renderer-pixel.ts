@@ -24,6 +24,10 @@ const tiles = new ImageMap("tiles.png", {
     "tile.f1": { left: 22, top: 6, width: 16, height: 12 },
 });
 
+const sprites = new ImageMap("sprites.png", {
+    "player": { left: 0, top: 0, width: 18, height: 12 }
+})
+
 const W_SMALL = 2;
 const W_LARGE = 16;
 const H_SMALL = 6;
@@ -89,5 +93,9 @@ export class PixelRenderer implements Renderer {
             }
         })
         tiles.draw(ctx, [10, 10], "test")
+
+        // draw "player"
+        ctx.fillStyle = "red";
+        sprites.draw(ctx, [state.pos[0] * (W_SMALL + W_LARGE) + W_SMALL, state.pos[1] * (H_SMALL + H_LARGE) + H_SMALL], "player");
     }
 }
