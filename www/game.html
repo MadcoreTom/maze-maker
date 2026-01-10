@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Map Game</title>
 </head>
 
@@ -42,6 +42,11 @@ html {
   padding: 0;
   height: 100%;
   background-color: #f0f0f0; /* Neutral background for large screens */
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* The main container */
@@ -87,7 +92,7 @@ canvas {
 }
 
 /* Desktop/Large Screen Override */
-@media (min-width: 760px) {
+@media (min-width: 1081px), (orientation: landscape) {
   .viewport-container {
     max-width: 760px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
