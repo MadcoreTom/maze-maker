@@ -114,7 +114,7 @@ export class GameComponent extends HTMLElement {
             this.elements.canvas.height = bestC;
             this.elements.canvas.style.width = `${bestC * bestS}px`;
             this.elements.canvas.style.height = `${bestC * bestS}px`;
-            this.elements.canvas.style.margin = "auto";
+            this.elements.canvas.style.margin = "0 auto";
         }
     }
 
