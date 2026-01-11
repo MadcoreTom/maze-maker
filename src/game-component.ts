@@ -1,7 +1,7 @@
 import { L1 } from "./layers";
 import { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
-import { createInitialState } from "./state";
+import { createInitialState, State } from "./state";
 import { MyGenerator } from "./types";
 
 enum Control {
@@ -33,6 +33,7 @@ export class GameComponent extends HTMLElement {
         down: HTMLButtonElement;
     };
 
+    private lastFrameTime: number = 0;
     private curLayer?: LayerLogic = L1;
     private curGenerator?: MyGenerator;
 
@@ -124,20 +125,31 @@ export class GameComponent extends HTMLElement {
         if(control !== undefined && this.state){
             switch(control){
                 case Control.LEFT:
-                    this.state.pos[0]  --;
+                    this.addAnimation("player", "LEFT");
                     break;
                 case Control.RIGHT:
-                    this.state.pos[0] ++;
+                    this.addAnimation("player", "RIGHT");
                     break;
                 case Control.UP:
-                    this.state.pos[1] --;
+                    this.addAnimation("player", "UP");
                     break;
                 case Control.DOWN:
-                    this.state.pos[1] ++;
+                    this.addAnimation("player", "DOWN");
                     break;
             }
-            console.log("POS", this.state.pos)
-            window.requestAnimationFrame(n => this.tick(n));
+        }
+    }
+
+    private addAnimation(spriteName: string, type: any /*TODO */) {
+        const exists = this.state && this.state.animations.filter(a => a.spriteName === spriteName).length > 0;
+        if (!exists && this.state) {
+            this.state.animations.push({
+                spriteName: spriteName,
+                duration: 240,
+                starttime: this.lastFrameTime,
+                type: type
+            })
+
         }
     }
 
@@ -149,6 +161,47 @@ export class GameComponent extends HTMLElement {
             this.ctx.fillRect(0,0,600,600);
             this.ctx.fillStyle = "yellow";
             this.ctx.fillText("Layer " + this.curLayer.title, 10, 10);
+        }
+
+        if(this.state){
+        this.state.animations = this.state.animations.filter(anim => {
+            const progress = Math.min(1,(time - anim.starttime) / anim.duration);
+            if(anim.type == "RIGHT"){
+                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+                if(s){
+                    s.position[0] = 2+ s.tile[0] * 18 + Math.round(progress * 18);
+                    if(progress >= 1){
+                        s.tile[0]++;
+                    }
+                }
+            } else if(anim.type == "LEFT"){
+                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+                if(s){
+                    s.position[0] = 2+ s.tile[0] * 18 - Math.round(progress * 18);
+                    if(progress >= 1){
+                        s.tile[0]--;
+                    }
+                }
+            } else  if(anim.type == "DOWN"){
+                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+                if(s){
+                    s.position[1] = 6+ s.tile[1] * 18 + Math.round(progress * 18);
+                    if(progress >= 1){
+                        s.tile[1]++;
+                    }
+                }
+            } else if(anim.type == "UP"){
+                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+                if(s){
+                    s.position[1] = 5+ s.tile[1] * 18 - Math.round(progress * 18);
+                    if(progress >= 1){
+                        s.tile[1]--;
+                    }
+                }
+            }
+            return progress < 1;
+        });
+
         }
 
         if (this.curLayer && this.curGenerator) {
@@ -167,9 +220,13 @@ export class GameComponent extends HTMLElement {
                     }
                 }
             }
+            if(!this.curGenerator && this.state){
+                // last generator step
+                this.state.sprites.addSprite("player", {position: [2,6], tile:[0,0],sprite:{left:0,top:0,width:16,height:12}})
+            }
+        } 
+
+this.lastFrameTime = time;
             window.requestAnimationFrame(n => this.tick(n));
-        } else {
-            console.log("🍌 Complete");
-        }
     }
 }

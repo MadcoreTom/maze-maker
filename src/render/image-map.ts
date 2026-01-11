@@ -14,10 +14,15 @@ export class ImageMap {
 
     public draw(ctx: CanvasRenderingContext2D, pos: XY, name: string) {
         const r = this.map[name];
-        if (this.ready && r) {
+        if (r) {
+            this.drawRegion(ctx, pos, r)
+        }
+    }
+    public drawRegion(ctx: CanvasRenderingContext2D, pos: XY, region: Rect) {
+        if (this.ready) {
             ctx.drawImage(this.image,
-                r.left, r.top, r.width, r.height,
-                pos[0], pos[1], r.width, r.height
+                region.left, region.top, region.width, region.height,
+                pos[0], pos[1], region.width, region.height
             );
         }
     }

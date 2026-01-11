@@ -94,8 +94,9 @@ export class PixelRenderer implements Renderer {
         })
         tiles.draw(ctx, [10, 10], "test")
 
-        // draw "player"
-        ctx.fillStyle = "red";
-        sprites.draw(ctx, [state.pos[0] * (W_SMALL + W_LARGE) + W_SMALL, state.pos[1] * (H_SMALL + H_LARGE) + H_SMALL], "player");
+        // sprites
+        state.sprites.forEachSprite(s=>{
+            sprites.drawRegion(ctx, s.position,s.sprite)
+        })
     }
 }

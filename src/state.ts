@@ -1,5 +1,5 @@
 import { Array2 } from "./util/array2";
-import { cloneXY, type XY } from "./util/xy";
+import { cloneXY, Rect, type XY } from "./util/xy";
 
 export type Tile = {
     solid: boolean;
@@ -17,7 +17,8 @@ export type State = {
     start?: XY;
     end?: XY;
     farthestFromPath?: XY;
-    pos: XY
+    sprites: Sprites,
+    animations: Animation[],
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -26,10 +27,41 @@ export type Items = {
     door?: "locked" | "open" | "closed";
 };
 
+export class Sprites {
+    private spriteMap: { [name: string]: Sprite } = {};
+    private spriteList: Sprite[] = [];
+    public addSprite(name: string, sprite: Sprite) {
+        this.spriteMap[name] = sprite;
+        // TODO check for name collisions
+        this.spriteList.push(sprite);
+    }
+    public getSpriteByName(name: string): Sprite | undefined {
+        return this.spriteMap[name];
+    }
+    // TODO implement removeSpriteByName
+    public forEachSprite(callback: (sprite: Sprite) => unknown): void {
+        this.spriteList.forEach(callback);
+    }
+}
+
+export type Sprite = {
+    position: XY,
+    tile: XY,
+    sprite: Rect
+}
+
+export type Animation = {
+    starttime: number,
+    duration: number,
+    type: "LEFT" | "RIGHT" | "UP" | "DOWN",
+    spriteName: string
+}
+
 export function createInitialState(): State {
     return {
         maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside" })),
-        pos: [0,0]
+        sprites: new Sprites,
+        animations: []
     };
 }
 
@@ -44,6 +76,5 @@ export function cloneState(s: State): State {
     return {
         ...s,
         maze: s.maze.clone((x, y, t) => cloneTile(t)),
-        pos: cloneXY(s.pos)
     };
 }
