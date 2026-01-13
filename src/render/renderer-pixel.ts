@@ -1,4 +1,5 @@
 import { State } from "../state";
+import { addXY, XY } from "../util/xy";
 import { PALETTE } from "./colour";
 import { ImageMap } from "./image-map";
 import { Renderer } from "./render-interface";
@@ -40,12 +41,20 @@ export class PixelRenderer implements Renderer {
         ctx.fillStyle = PALETTE.black;
         ctx.fillRect(0, 0, 600, 600);
 
+        const offset: XY = [0, 0];
+        const player = state.sprites.getSpriteByName("player");
+        if (player && state.viewportSize) {
+            offset[0] = Math.floor((state.viewportSize[0] - W_LARGE) / 2) - player.position[0];
+            offset[1] = Math.floor((state.viewportSize[1] - H_LARGE) / 2) - player.position[1]; // TODO center this properly
+        }
+
+
         state.maze.forEach((x, y, t) => {
             if (x % 2 === 0) {
-                const px = x * (W_SMALL + W_LARGE) / 2;
+                const px = offset[0] + x * (W_SMALL + W_LARGE) / 2;
 
                 if (y % 2 === 0) {
-                    const py = y * (H_SMALL + H_LARGE) / 2;
+                    const py = offset[1] + y * (H_SMALL + H_LARGE) / 2;
                     if (t.type === "outside") {
                         tiles.draw(ctx, [px, py], "corner.outside");
                     } else if (t.type === "wall") {
@@ -59,7 +68,7 @@ export class PixelRenderer implements Renderer {
                         tiles.draw(ctx, [px, py], "corner.f1");
                     }
                 } else {
-                    const py = (y - 1) * (H_SMALL + H_LARGE) / 2 + H_SMALL;
+                    const py = offset[1] + (y - 1) * (H_SMALL + H_LARGE) / 2 + H_SMALL;
                     if (t.type === "outside") {
                         tiles.draw(ctx, [px, py], "vwall.outside");
                     } else if (t.type === "wall") {
@@ -69,9 +78,9 @@ export class PixelRenderer implements Renderer {
                     }
                 }
             } else {
-                const px = (x - 1) * (W_SMALL + W_LARGE) / 2 + W_SMALL;
+                const px = offset[0] + (x - 1) * (W_SMALL + W_LARGE) / 2 + W_SMALL;
                 if (y % 2 === 0) {
-                    const py = y * (H_SMALL + H_LARGE) / 2;
+                    const py = offset[1] + y * (H_SMALL + H_LARGE) / 2;
                     let name: string;
                     if (t.type === "wall") {
                         name = "hwall.w1"
@@ -83,7 +92,7 @@ export class PixelRenderer implements Renderer {
                     }
                     tiles.draw(ctx, [px, py], name)
                 } else {
-                    const py = (y - 1) * (H_SMALL + H_LARGE) / 2 + H_SMALL;
+                    const py = offset[1] + (y - 1) * (H_SMALL + H_LARGE) / 2 + H_SMALL;
                     if (t.type === "outside") {
                         tiles.draw(ctx, [px, py], "tile.outside")
                     } else {
@@ -95,8 +104,8 @@ export class PixelRenderer implements Renderer {
         tiles.draw(ctx, [10, 10], "test")
 
         // sprites
-        state.sprites.forEachSprite(s=>{
-            sprites.drawRegion(ctx, s.position,s.sprite)
+        state.sprites.forEachSprite(s => {
+            sprites.drawRegion(ctx, addXY(s.position, offset), s.sprite)
         })
     }
 }

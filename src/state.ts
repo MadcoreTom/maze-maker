@@ -19,6 +19,7 @@ export type State = {
     farthestFromPath?: XY;
     sprites: Sprites,
     animations: Animation[],
+    viewportSize?: XY
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -76,5 +77,6 @@ export function cloneState(s: State): State {
     return {
         ...s,
         maze: s.maze.clone((x, y, t) => cloneTile(t)),
+        viewportSize: cloneXY(s.viewportSize)
     };
 }

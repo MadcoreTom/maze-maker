@@ -117,6 +117,11 @@ export class GameComponent extends HTMLElement {
             this.elements.canvas.style.height = `${bestC * bestS}px`;
             this.elements.canvas.style.margin = "0 auto";
         }
+        if(this.state){
+            this.state.viewportSize = [bestC, bestC];
+        } else {
+            console.log("Could not set VP size")
+        }
     }
 
     private keyDown(code:string){
@@ -169,33 +174,37 @@ export class GameComponent extends HTMLElement {
             if(anim.type == "RIGHT"){
                 const s= this.state!.sprites.getSpriteByName(anim.spriteName);
                 if(s){
-                    s.position[0] = 2+ s.tile[0] * 18 + Math.round(progress * 18);
+                    s.position[0] = 2+ s.tile[0] * 18 + Math.floor(progress * 18);
                     if(progress >= 1){
                         s.tile[0]++;
+                        s.position[0] = 2+ s.tile[0] * 18;
                     }
                 }
             } else if(anim.type == "LEFT"){
                 const s= this.state!.sprites.getSpriteByName(anim.spriteName);
                 if(s){
-                    s.position[0] = 2+ s.tile[0] * 18 - Math.round(progress * 18);
+                    s.position[0] = 2+ s.tile[0] * 18 - Math.floor(progress * 18);
                     if(progress >= 1){
                         s.tile[0]--;
+                        s.position[0] = 2+ s.tile[0] * 18;
                     }
                 }
             } else  if(anim.type == "DOWN"){
                 const s= this.state!.sprites.getSpriteByName(anim.spriteName);
                 if(s){
-                    s.position[1] = 6+ s.tile[1] * 18 + Math.round(progress * 18);
+                    s.position[1] = 6+ s.tile[1] * 18 + Math.floor(progress * 18);
                     if(progress >= 1){
                         s.tile[1]++;
+                        s.position[1] = 6+ s.tile[1] * 18;
                     }
                 }
             } else if(anim.type == "UP"){
                 const s= this.state!.sprites.getSpriteByName(anim.spriteName);
                 if(s){
-                    s.position[1] = 5+ s.tile[1] * 18 - Math.round(progress * 18);
+                    s.position[1] = 5+ s.tile[1] * 18 - Math.floor(progress * 18);
                     if(progress >= 1){
                         s.tile[1]--;
+                        s.position[1] = 6+ s.tile[1] * 18;
                     }
                 }
             }
@@ -216,6 +225,7 @@ export class GameComponent extends HTMLElement {
                         this.curGenerator = this.curLayer.apply()();
                     } else {
                         this.state = this.curLayer.state;
+                        this.state!.viewportSize = [this.elements!.canvas.width,this.elements!.canvas.height];
                         this.curGenerator = undefined;
                     }
                 }
