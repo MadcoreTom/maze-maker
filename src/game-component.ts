@@ -1,8 +1,10 @@
+import { Action, WalkLeftAction, WalkRightAction } from "./action";
 import { L1 } from "./layers";
 import { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
 import { createInitialState, State } from "./state";
 import { MyGenerator } from "./types";
+import { XY } from "./util/xy";
 
 enum Control {
     UP,
@@ -126,39 +128,48 @@ export class GameComponent extends HTMLElement {
 
     private keyDown(code:string){
         console.log("Key", code, KEY_MAP[code],KEY_MAP[code] ? Control[KEY_MAP[code]] : "?");
+        console.log(this.state?.actions)
         const control = KEY_MAP[code];
+        let action: Action | null = null;
         if(control !== undefined && this.state){
             switch(control){
                 case Control.LEFT:
-                    this.addAnimation("player", "LEFT");
+                    action = this.state ? this.state.actions.left : null;
                     break;
                 case Control.RIGHT:
-                    this.addAnimation("player", "RIGHT");
+                    action = this.state ? this.state.actions.right : null;
                     break;
                 case Control.UP:
-                    this.addAnimation("player", "UP");
+                    action = this.state ? this.state.actions.up : null;
                     break;
                 case Control.DOWN:
-                    this.addAnimation("player", "DOWN");
+                    action = this.state ? this.state.actions.down : null;
                     break;
             }
         }
-    }
 
-    private addAnimation(spriteName: string, type: any /*TODO */) {
-        const exists = this.state && this.state.animations.filter(a => a.spriteName === spriteName).length > 0;
-        if (!exists && this.state) {
-            this.state.animations.push({
-                spriteName: spriteName,
-                duration: 240,
-                starttime: this.lastFrameTime,
-                type: type
-            })
-
+        if(this.state && action){
+            action.onClick(this.state);
+            this.state.animation = action.getAnimation(this.state);
         }
     }
 
+    // private addAnimation(spriteName: string, type: any /*TODO */) {
+    //     const exists = this.state && this.state.animations.filter(a => a.spriteName === spriteName).length > 0;
+    //     if (!exists && this.state) {
+    //         this.state.animations.push({
+    //             spriteName: spriteName,
+    //             duration: 240,
+    //             starttime: this.lastFrameTime,
+    //             type: type
+    //         })
+
+    //     }
+    // }
+
     private tick(time: number) {
+        const delta = Math.min(100, time - this.lastFrameTime);
+        this.lastFrameTime = time;
         if (this.ctx && this.state) {
             this.renderer.render(this.ctx, this.state);
         } else if(this.ctx &&this.curLayer){
@@ -169,47 +180,92 @@ export class GameComponent extends HTMLElement {
         }
 
         if(this.state){
-        this.state.animations = this.state.animations.filter(anim => {
-            const progress = Math.min(1,(time - anim.starttime) / anim.duration);
-            if(anim.type == "RIGHT"){
-                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-                if(s){
-                    s.position[0] = 2+ s.tile[0] * 18 + Math.floor(progress * 18);
-                    if(progress >= 1){
-                        s.tile[0]++;
-                        s.position[0] = 2+ s.tile[0] * 18;
-                    }
-                }
-            } else if(anim.type == "LEFT"){
-                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-                if(s){
-                    s.position[0] = 2+ s.tile[0] * 18 - Math.floor(progress * 18);
-                    if(progress >= 1){
-                        s.tile[0]--;
-                        s.position[0] = 2+ s.tile[0] * 18;
-                    }
-                }
-            } else  if(anim.type == "DOWN"){
-                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-                if(s){
-                    s.position[1] = 6+ s.tile[1] * 18 + Math.floor(progress * 18);
-                    if(progress >= 1){
-                        s.tile[1]++;
-                        s.position[1] = 6+ s.tile[1] * 18;
-                    }
-                }
-            } else if(anim.type == "UP"){
-                const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-                if(s){
-                    s.position[1] = 5+ s.tile[1] * 18 - Math.floor(progress * 18);
-                    if(progress >= 1){
-                        s.tile[1]--;
-                        s.position[1] = 6+ s.tile[1] * 18;
-                    }
-                }
-            }
-            return progress < 1;
-        });
+
+if(this.state.animation){
+    const finished = this.state.animation(delta);
+    if(finished){
+        this.state.animation = null;
+        // TODO calculate next available actions (unless its time for sprites to take turns?)
+        const kernel :XY[]= [
+            [-1,0],[-2,0],
+            [1,0],[2,0]
+        ]
+        const result = this.state.maze.getKernel(this.state.sprites.getSpriteByName("player")!.tile, kernel);
+        this.state.actions = {
+            left: null,
+            right: null,
+            up:null,
+            down:null
+        }
+        if(result[0] && !result[0].solid && result[1] && !result[1].solid){
+            this.state.actions.left = new WalkLeftAction();
+        }
+        if(result[2] && !result[2].solid && result[3] && !result[3].solid){
+            this.state.actions.right = new WalkRightAction();
+        }
+        console.log("result", result, this.state.actions)
+
+        if(this.state.actions.left){
+            this.elements!.left.disabled = false;
+            this.elements!.left.textContent = this.state.actions.left.displayName;
+
+        } else {
+            this.elements!.left.disabled = true;
+            this.elements!.left.textContent = "";
+        }
+        
+        if(this.state.actions.right){
+            this.elements!.right.disabled = false;
+            this.elements!.right.textContent = this.state.actions.right.displayName;
+
+        } else {
+            this.elements!.right.disabled = true;
+            this.elements!.right.textContent = "";
+        }
+    }
+}
+
+        // this.state.animations = this.state.animations.filter(anim => {
+        //     const progress = Math.min(1,(time - anim.starttime) / anim.duration);
+        //     if(anim.type == "RIGHT"){
+        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+        //         if(s){
+        //             s.position[0] = 2+ s.tile[0] * 18 + Math.floor(progress * 18);
+        //             if(progress >= 1){
+        //                 s.tile[0]++;
+        //                 s.position[0] = 2+ s.tile[0] * 18;
+        //             }
+        //         }
+        //     } else if(anim.type == "LEFT"){
+        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+        //         if(s){
+        //             s.position[0] = 2+ s.tile[0] * 18 - Math.floor(progress * 18);
+        //             if(progress >= 1){
+        //                 s.tile[0]--;
+        //                 s.position[0] = 2+ s.tile[0] * 18;
+        //             }
+        //         }
+        //     } else  if(anim.type == "DOWN"){
+        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+        //         if(s){
+        //             s.position[1] = 6+ s.tile[1] * 18 + Math.floor(progress * 18);
+        //             if(progress >= 1){
+        //                 s.tile[1]++;
+        //                 s.position[1] = 6+ s.tile[1] * 18;
+        //             }
+        //         }
+        //     } else if(anim.type == "UP"){
+        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+        //         if(s){
+        //             s.position[1] = 5+ s.tile[1] * 18 - Math.floor(progress * 18);
+        //             if(progress >= 1){
+        //                 s.tile[1]--;
+        //                 s.position[1] = 6+ s.tile[1] * 18;
+        //             }
+        //         }
+        //     }
+        //     return progress < 1;
+        // });
 
         }
 
@@ -232,7 +288,7 @@ export class GameComponent extends HTMLElement {
             }
             if(!this.curGenerator && this.state){
                 // last generator step
-                this.state.sprites.addSprite("player", {position: [2,6], tile:[0,0],sprite:{left:0,top:0,width:16,height:12}})
+                this.state.sprites.addSprite("player", {position: [2,6], tile:[1,1],sprite:{left:0,top:0,width:16,height:12}})
             }
         } 
 

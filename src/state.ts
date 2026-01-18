@@ -1,3 +1,4 @@
+import { Action, ActionAnimation, WalkLeftAction, WalkRightAction } from "./action";
 import { Array2 } from "./util/array2";
 import { cloneXY, Rect, type XY } from "./util/xy";
 
@@ -18,8 +19,14 @@ export type State = {
     end?: XY;
     farthestFromPath?: XY;
     sprites: Sprites,
-    animations: Animation[],
-    viewportSize?: XY
+    animation: ActionAnimation | null,
+    viewportSize?: XY,
+    actions: {
+        left: null | Action,
+        right: null | Action,
+        up: null | Action,
+        down: null | Action
+    }
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -62,7 +69,13 @@ export function createInitialState(): State {
     return {
         maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside" })),
         sprites: new Sprites,
-        animations: []
+        animation: null,
+        actions: {
+            left: new WalkLeftAction(),
+            right: new WalkRightAction(), 
+            up:null, 
+            down:null
+        }
     };
 }
 
