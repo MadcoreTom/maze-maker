@@ -1,27 +1,27 @@
-import { Action, WalkLeftAction, WalkRightAction } from "./action";
+import { type Action, WalkLeftAction, WalkRightAction } from "./action";
 import { L1 } from "./layers";
-import { LayerLogic } from "./layers/layer";
+import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
-import { createInitialState, State } from "./state";
-import { MyGenerator } from "./types";
-import { XY } from "./util/xy";
+import { createInitialState, type State } from "./state";
+import type { MyGenerator } from "./types";
+import type { XY } from "./util/xy";
 
 enum Control {
     UP,
-    DOWN, 
-    LEFT, 
-    RIGHT
+    DOWN,
+    LEFT,
+    RIGHT,
 }
-const KEY_MAP :{[keyCode:string]:Control} = {
-    "KeyA": Control.LEFT,
-    "ArrowLeft": Control.LEFT,
-    "KeyD": Control.RIGHT,
-    "ArrowRight": Control.RIGHT,
-    "KeyW": Control.UP,
-    "ArrowUp": Control.UP,
-    "KeyS": Control.DOWN,
-    "ArrowDown": Control.DOWN,
-}
+const KEY_MAP: { [keyCode: string]: Control } = {
+    KeyA: Control.LEFT,
+    ArrowLeft: Control.LEFT,
+    KeyD: Control.RIGHT,
+    ArrowRight: Control.RIGHT,
+    KeyW: Control.UP,
+    ArrowUp: Control.UP,
+    KeyS: Control.DOWN,
+    ArrowDown: Control.DOWN,
+};
 
 export class GameComponent extends HTMLElement {
     private ctx?: CanvasRenderingContext2D;
@@ -49,11 +49,11 @@ export class GameComponent extends HTMLElement {
             up: this.querySelector("[name=up]") as HTMLButtonElement,
             down: this.querySelector("[name=down]") as HTMLButtonElement,
         };
-        
-        this.elements.left.addEventListener("click", ()=>this.keyDown("ArrowLeft"));
-        this.elements.right.addEventListener("click", ()=>this.keyDown("ArrowRight"));
-        this.elements.up.addEventListener("click", ()=>this.keyDown("ArrowUp"));
-        this.elements.down.addEventListener("click", ()=>this.keyDown("ArrowDown"));
+
+        this.elements.left.addEventListener("click", () => this.keyDown("ArrowLeft"));
+        this.elements.right.addEventListener("click", () => this.keyDown("ArrowRight"));
+        this.elements.up.addEventListener("click", () => this.keyDown("ArrowUp"));
+        this.elements.down.addEventListener("click", () => this.keyDown("ArrowDown"));
 
         this.elements.canvas.width = 600;
         this.elements.canvas.height = 600;
@@ -65,7 +65,7 @@ export class GameComponent extends HTMLElement {
         console.log("🍌 init", this.curLayer!.state);
 
         this.setupResizeObserver();
-        window.addEventListener("keydown",(e)=>this.keyDown(e.code))
+        window.addEventListener("keydown", e => this.keyDown(e.code));
 
         window.requestAnimationFrame(n => this.tick(n));
     }
@@ -119,20 +119,20 @@ export class GameComponent extends HTMLElement {
             this.elements.canvas.style.height = `${bestC * bestS}px`;
             this.elements.canvas.style.margin = "0 auto";
         }
-        if(this.state){
+        if (this.state) {
             this.state.viewportSize = [bestC, bestC];
         } else {
-            console.log("Could not set VP size")
+            console.log("Could not set VP size");
         }
     }
 
-    private keyDown(code:string){
-        console.log("Key", code, KEY_MAP[code],KEY_MAP[code] ? Control[KEY_MAP[code]] : "?");
-        console.log(this.state?.actions)
+    private keyDown(code: string) {
+        console.log("Key", code, KEY_MAP[code], KEY_MAP[code] ? Control[KEY_MAP[code]] : "?");
+        console.log(this.state?.actions);
         const control = KEY_MAP[code];
         let action: Action | null = null;
-        if(control !== undefined && this.state){
-            switch(control){
+        if (control !== undefined && this.state) {
+            switch (control) {
                 case Control.LEFT:
                     action = this.state ? this.state.actions.left : null;
                     break;
@@ -148,9 +148,18 @@ export class GameComponent extends HTMLElement {
             }
         }
 
-        if(this.state && action){
+        if (this.state && action) {
             action.onClick(this.state);
             this.state.animation = action.getAnimation(this.state);
+
+            this.state.actions = {
+                left: null,
+                right: null,
+                up: null,
+                down: null,
+            };
+            // disable all buttons while animating
+            this.updateButtons();
         }
     }
 
@@ -167,106 +176,109 @@ export class GameComponent extends HTMLElement {
     //     }
     // }
 
+    private updateAction(key: "left" | "right", dx: number, dy: number, createAction: () => Action) {
+        if (!this.state) {
+            return;
+        }
+        const kernel: XY[] = [
+            [dx, dy],
+            [2 * dx, 2 * dy],
+        ];
+        const result = this.state.maze.getKernel(this.state.sprites.getSpriteByName("player")!.tile, kernel);
+
+        if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
+            this.state.actions[key] = createAction();
+        }
+        // console.log("result", result, this.state.actions)
+    }
+
+    private updateButtons() {
+        if (!this.state || !this.elements) {
+            return;
+        }
+        ["up", "down", "left", "right"].forEach(key => {
+            if (this.state!.actions[key]) {
+                this.elements![key].disabled = false;
+                this.elements![key].textContent = this.state!.actions[key].displayName;
+            } else {
+                this.elements![key].disabled = true;
+                this.elements![key].textContent = "";
+            }
+        });
+    }
+
     private tick(time: number) {
         const delta = Math.min(100, time - this.lastFrameTime);
         this.lastFrameTime = time;
         if (this.ctx && this.state) {
             this.renderer.render(this.ctx, this.state);
-        } else if(this.ctx &&this.curLayer){
+        } else if (this.ctx && this.curLayer) {
             this.ctx.fillStyle = "black";
-            this.ctx.fillRect(0,0,600,600);
+            this.ctx.fillRect(0, 0, 600, 600);
             this.ctx.fillStyle = "yellow";
             this.ctx.fillText("Layer " + this.curLayer.title, 10, 10);
         }
 
-        if(this.state){
+        if (this.state) {
+            if (this.state.animation) {
+                const finished = this.state.animation(delta);
+                if (finished) {
+                    this.state.animation = null;
+                    // TODO calculate next available actions (unless its time for sprites to take turns?)
+                    this.state.actions = {
+                        left: null,
+                        right: null,
+                        up: null,
+                        down: null,
+                    };
 
-if(this.state.animation){
-    const finished = this.state.animation(delta);
-    if(finished){
-        this.state.animation = null;
-        // TODO calculate next available actions (unless its time for sprites to take turns?)
-        const kernel :XY[]= [
-            [-1,0],[-2,0],
-            [1,0],[2,0]
-        ]
-        const result = this.state.maze.getKernel(this.state.sprites.getSpriteByName("player")!.tile, kernel);
-        this.state.actions = {
-            left: null,
-            right: null,
-            up:null,
-            down:null
-        }
-        if(result[0] && !result[0].solid && result[1] && !result[1].solid){
-            this.state.actions.left = new WalkLeftAction();
-        }
-        if(result[2] && !result[2].solid && result[3] && !result[3].solid){
-            this.state.actions.right = new WalkRightAction();
-        }
-        console.log("result", result, this.state.actions)
+                    this.updateAction("left", -1, 0, () => new WalkLeftAction());
+                    this.updateAction("right", 1, 0, () => new WalkRightAction());
+                    this.updateButtons();
+                }
+            }
 
-        if(this.state.actions.left){
-            this.elements!.left.disabled = false;
-            this.elements!.left.textContent = this.state.actions.left.displayName;
-
-        } else {
-            this.elements!.left.disabled = true;
-            this.elements!.left.textContent = "";
-        }
-        
-        if(this.state.actions.right){
-            this.elements!.right.disabled = false;
-            this.elements!.right.textContent = this.state.actions.right.displayName;
-
-        } else {
-            this.elements!.right.disabled = true;
-            this.elements!.right.textContent = "";
-        }
-    }
-}
-
-        // this.state.animations = this.state.animations.filter(anim => {
-        //     const progress = Math.min(1,(time - anim.starttime) / anim.duration);
-        //     if(anim.type == "RIGHT"){
-        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-        //         if(s){
-        //             s.position[0] = 2+ s.tile[0] * 18 + Math.floor(progress * 18);
-        //             if(progress >= 1){
-        //                 s.tile[0]++;
-        //                 s.position[0] = 2+ s.tile[0] * 18;
-        //             }
-        //         }
-        //     } else if(anim.type == "LEFT"){
-        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-        //         if(s){
-        //             s.position[0] = 2+ s.tile[0] * 18 - Math.floor(progress * 18);
-        //             if(progress >= 1){
-        //                 s.tile[0]--;
-        //                 s.position[0] = 2+ s.tile[0] * 18;
-        //             }
-        //         }
-        //     } else  if(anim.type == "DOWN"){
-        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-        //         if(s){
-        //             s.position[1] = 6+ s.tile[1] * 18 + Math.floor(progress * 18);
-        //             if(progress >= 1){
-        //                 s.tile[1]++;
-        //                 s.position[1] = 6+ s.tile[1] * 18;
-        //             }
-        //         }
-        //     } else if(anim.type == "UP"){
-        //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-        //         if(s){
-        //             s.position[1] = 5+ s.tile[1] * 18 - Math.floor(progress * 18);
-        //             if(progress >= 1){
-        //                 s.tile[1]--;
-        //                 s.position[1] = 6+ s.tile[1] * 18;
-        //             }
-        //         }
-        //     }
-        //     return progress < 1;
-        // });
-
+            // this.state.animations = this.state.animations.filter(anim => {
+            //     const progress = Math.min(1,(time - anim.starttime) / anim.duration);
+            //     if(anim.type == "RIGHT"){
+            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+            //         if(s){
+            //             s.position[0] = 2+ s.tile[0] * 18 + Math.floor(progress * 18);
+            //             if(progress >= 1){
+            //                 s.tile[0]++;
+            //                 s.position[0] = 2+ s.tile[0] * 18;
+            //             }
+            //         }
+            //     } else if(anim.type == "LEFT"){
+            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+            //         if(s){
+            //             s.position[0] = 2+ s.tile[0] * 18 - Math.floor(progress * 18);
+            //             if(progress >= 1){
+            //                 s.tile[0]--;
+            //                 s.position[0] = 2+ s.tile[0] * 18;
+            //             }
+            //         }
+            //     } else  if(anim.type == "DOWN"){
+            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+            //         if(s){
+            //             s.position[1] = 6+ s.tile[1] * 18 + Math.floor(progress * 18);
+            //             if(progress >= 1){
+            //                 s.tile[1]++;
+            //                 s.position[1] = 6+ s.tile[1] * 18;
+            //             }
+            //         }
+            //     } else if(anim.type == "UP"){
+            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
+            //         if(s){
+            //             s.position[1] = 5+ s.tile[1] * 18 - Math.floor(progress * 18);
+            //             if(progress >= 1){
+            //                 s.tile[1]--;
+            //                 s.position[1] = 6+ s.tile[1] * 18;
+            //             }
+            //         }
+            //     }
+            //     return progress < 1;
+            // });
         }
 
         if (this.curLayer && this.curGenerator) {
@@ -281,18 +293,22 @@ if(this.state.animation){
                         this.curGenerator = this.curLayer.apply()();
                     } else {
                         this.state = this.curLayer.state;
-                        this.state!.viewportSize = [this.elements!.canvas.width,this.elements!.canvas.height];
+                        this.state!.viewportSize = [this.elements!.canvas.width, this.elements!.canvas.height];
                         this.curGenerator = undefined;
                     }
                 }
             }
-            if(!this.curGenerator && this.state){
+            if (!this.curGenerator && this.state) {
                 // last generator step
-                this.state.sprites.addSprite("player", {position: [2,6], tile:[1,1],sprite:{left:0,top:0,width:16,height:12}})
+                this.state.sprites.addSprite("player", {
+                    position: [2, 6],
+                    tile: [1, 1],
+                    sprite: { left: 0, top: 0, width: 16, height: 12 },
+                });
             }
-        } 
+        }
 
-this.lastFrameTime = time;
-            window.requestAnimationFrame(n => this.tick(n));
+        this.lastFrameTime = time;
+        window.requestAnimationFrame(n => this.tick(n));
     }
 }

@@ -29,7 +29,7 @@ export class RoomLayer extends LayerLogic {
             },
         ]);
     }
-    
+
     private pickRoom(state: State, maxWidth: number, maxHeight: number): Rect & { roomId: number } {
         const attempts = 20;
         let w = 0;

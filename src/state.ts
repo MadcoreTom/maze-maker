@@ -1,6 +1,6 @@
-import { Action, ActionAnimation, WalkLeftAction, WalkRightAction } from "./action";
+import { type Action, type ActionAnimation, WalkLeftAction, WalkRightAction } from "./action";
 import { Array2 } from "./util/array2";
-import { cloneXY, Rect, type XY } from "./util/xy";
+import { cloneXY, type Rect, type XY } from "./util/xy";
 
 export type Tile = {
     solid: boolean;
@@ -18,15 +18,15 @@ export type State = {
     start?: XY;
     end?: XY;
     farthestFromPath?: XY;
-    sprites: Sprites,
-    animation: ActionAnimation | null,
-    viewportSize?: XY,
+    sprites: Sprites;
+    animation: ActionAnimation | null;
+    viewportSize?: XY;
     actions: {
-        left: null | Action,
-        right: null | Action,
-        up: null | Action,
-        down: null | Action
-    }
+        left: null | Action;
+        right: null | Action;
+        up: null | Action;
+        down: null | Action;
+    };
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -53,29 +53,29 @@ export class Sprites {
 }
 
 export type Sprite = {
-    position: XY,
-    tile: XY,
-    sprite: Rect
-}
+    position: XY;
+    tile: XY;
+    sprite: Rect;
+};
 
 export type Animation = {
-    starttime: number,
-    duration: number,
-    type: "LEFT" | "RIGHT" | "UP" | "DOWN",
-    spriteName: string
-}
+    starttime: number;
+    duration: number;
+    type: "LEFT" | "RIGHT" | "UP" | "DOWN";
+    spriteName: string;
+};
 
 export function createInitialState(): State {
     return {
         maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside" })),
-        sprites: new Sprites,
+        sprites: new Sprites(),
         animation: null,
         actions: {
             left: new WalkLeftAction(),
-            right: new WalkRightAction(), 
-            up:null, 
-            down:null
-        }
+            right: new WalkRightAction(),
+            up: null,
+            down: null,
+        },
     };
 }
 
@@ -90,6 +90,6 @@ export function cloneState(s: State): State {
     return {
         ...s,
         maze: s.maze.clone((x, y, t) => cloneTile(t)),
-        viewportSize: cloneXY(s.viewportSize)
+        viewportSize: cloneXY(s.viewportSize),
     };
 }

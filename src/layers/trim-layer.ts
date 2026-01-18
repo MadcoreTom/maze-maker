@@ -13,8 +13,8 @@ export class EndTrimmerLayer extends LayerLogic {
                 type: "number",
             },
         ]);
-    } 
-    
+    }
+
     apply(): ReturnsGenerator {
         const state = this.state!;
         const iterations = this.getNumberParam("iterations", 0) * 2;
