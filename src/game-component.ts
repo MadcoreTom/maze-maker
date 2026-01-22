@@ -1,4 +1,4 @@
-import { type Action, WalkLeftAction, WalkRightAction } from "./action";
+import { type Action, WalkDownAction, WalkLeftAction, WalkRightAction, WalkUpAction } from "./action";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
@@ -176,7 +176,7 @@ export class GameComponent extends HTMLElement {
     //     }
     // }
 
-    private updateAction(key: "left" | "right", dx: number, dy: number, createAction: () => Action) {
+    private updateAction(key: "left" | "right" | "up" | "down", dx: number, dy: number, createAction: () => Action) {
         if (!this.state) {
             return;
         }
@@ -234,6 +234,8 @@ export class GameComponent extends HTMLElement {
 
                     this.updateAction("left", -1, 0, () => new WalkLeftAction());
                     this.updateAction("right", 1, 0, () => new WalkRightAction());
+                    this.updateAction("up", 0, -1, () => new WalkUpAction());
+                    this.updateAction("down", 0, 1, () => new WalkDownAction());
                     this.updateButtons();
                 }
             }
@@ -300,9 +302,10 @@ export class GameComponent extends HTMLElement {
             }
             if (!this.curGenerator && this.state) {
                 // last generator step
+                let pos:XY = this.state.start || [1,1];
                 this.state.sprites.addSprite("player", {
-                    position: [2, 6],
-                    tile: [1, 1],
+                    position: [pos[0] * 18, pos[1] * 18],
+                    tile: pos,
                     sprite: { left: 0, top: 0, width: 16, height: 12 },
                 });
             }

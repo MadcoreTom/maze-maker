@@ -28,6 +28,26 @@ export class WalkRightAction extends Action {
         return sprite ? walkAnimation(1, 0, sprite) : null;
     }
 }
+export class WalkUpAction extends Action {
+    public constructor() {
+        super("Up");
+    }
+
+    public getAnimation(state: State): null | ActionAnimation {
+        const sprite = state.sprites.getSpriteByName("player");
+        return sprite ? walkAnimation(0, -1, sprite) : null;
+    }
+}
+export class WalkDownAction extends Action {
+    public constructor() {
+        super("Down");
+    }
+
+    public getAnimation(state: State): null | ActionAnimation {
+        const sprite = state.sprites.getSpriteByName("player");
+        return sprite ? walkAnimation(0, 1, sprite) : null;
+    }
+}
 
 function walkAnimation(dx: number, dy: number, sprite: Sprite): ActionAnimation {
     let progress = 0;
