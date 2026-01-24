@@ -1,9 +1,10 @@
-import { type Action, WalkDownAction, WalkLeftAction, WalkRightAction, WalkUpAction } from "./action";
+import { Action, ActionDirection, OpenDoorAction, WalkAction } from "./action";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
 import { createInitialState, type State } from "./state";
 import type { MyGenerator } from "./types";
+import { kernel } from "./util/distance";
 import type { XY } from "./util/xy";
 
 enum Control {
@@ -159,6 +160,12 @@ export class GameComponent extends HTMLElement {
                 down: null,
             };
             // disable all buttons while animating
+            if (this.state.animation == null) {
+                this.updateAction("left", -1, 0);
+                this.updateAction("right", 1, 0);
+                this.updateAction("up", 0, -1);
+                this.updateAction("down", 0, 1);
+            }
             this.updateButtons();
         }
     }
@@ -176,7 +183,7 @@ export class GameComponent extends HTMLElement {
     //     }
     // }
 
-    private updateAction(key: "left" | "right" | "up" | "down", dx: number, dy: number, createAction: () => Action) {
+    private updateAction(key: "left" | "right" | "up" | "down", dx: number, dy: number) {
         if (!this.state) {
             return;
         }
@@ -187,7 +194,13 @@ export class GameComponent extends HTMLElement {
         const result = this.state.maze.getKernel(this.state.sprites.getSpriteByName("player")!.tile, kernel);
 
         if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
-            this.state.actions[key] = createAction();
+            this.state.actions[key] = new WalkAction([dx,dy] as ActionDirection);
+        } else  if (result[0] && result[0].items && "closed" == result[0].items.door && result[1] && !result[1].solid) {
+            this.state.actions[key] = new OpenDoorAction([dx,dy] as ActionDirection);
+        } else  if (result[0] && result[0].items && "locked" == result[0].items.door && result[1] && !result[1].solid) {
+            this.state.actions[key] = new OpenDoorAction([dx,dy] as ActionDirection); // TODO dependent on having key
+        } else {
+            console.log("WHAT", result);
         }
         // console.log("result", result, this.state.actions)
     }
@@ -196,13 +209,14 @@ export class GameComponent extends HTMLElement {
         if (!this.state || !this.elements) {
             return;
         }
-        ["up", "down", "left", "right"].forEach(key => {
-            if (this.state!.actions[key]) {
-                this.elements![key].disabled = false;
-                this.elements![key].textContent = this.state!.actions[key].displayName;
+        ["up", "down", "left", "right"].forEach((key)=> {
+            const k = key as "up" | "down" | "left" | "right";
+            if (this.state!.actions[k]) {
+                this.elements![k].disabled = false;
+                this.elements![k].textContent = this.state!.actions[k].displayName;
             } else {
-                this.elements![key].disabled = true;
-                this.elements![key].textContent = "";
+                this.elements![k].disabled = true;
+                this.elements![k].textContent = "";
             }
         });
     }
@@ -232,10 +246,10 @@ export class GameComponent extends HTMLElement {
                         down: null,
                     };
 
-                    this.updateAction("left", -1, 0, () => new WalkLeftAction());
-                    this.updateAction("right", 1, 0, () => new WalkRightAction());
-                    this.updateAction("up", 0, -1, () => new WalkUpAction());
-                    this.updateAction("down", 0, 1, () => new WalkDownAction());
+                    this.updateAction("left", -1, 0);
+                    this.updateAction("right", 1, 0);
+                    this.updateAction("up", 0, -1);
+                    this.updateAction("down", 0, 1);
                     this.updateButtons();
                 }
             }

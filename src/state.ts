@@ -1,4 +1,4 @@
-import { type Action, type ActionAnimation, WalkLeftAction, WalkRightAction } from "./action";
+import { Action, ActionAnimation,WalkAction } from "./action";
 import { Array2 } from "./util/array2";
 import { cloneXY, type Rect, type XY } from "./util/xy";
 
@@ -71,11 +71,11 @@ export function createInitialState(): State {
         sprites: new Sprites(),
         animation: null,
         actions: {
-            left: new WalkLeftAction(),
-            right: new WalkRightAction(),
-            up: null,
-            down: null,
-        },
+            left: new WalkAction([-1,0]),
+            right: new WalkAction([1,0]), 
+            up: new WalkAction([0,-1]),
+            down: new WalkAction([0,1])
+        }
     };
 }
 
