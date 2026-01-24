@@ -17,6 +17,8 @@ const tiles = new ImageMap("tiles.png", {
     "hwall.outside": { left: 2, top: 18, width: 16, height: 6 },
     "hwall.w1": { left: 22, top: 0, width: 16, height: 6 },
     "hwall.f1": { left: 22, top: 18, width: 16, height: 6 },
+    "hwall.door.open": { left: 76, top: 0, width: 16, height: 6 },
+    "hwall.door.closed": { left: 58, top: 0, width: 16, height: 6 },
 
     "tile.outside": { left: 4, top: 6, width: 16, height: 12 },
     "tile.f1": { left: 22, top: 6, width: 16, height: 12 },
@@ -82,6 +84,8 @@ export class PixelRenderer implements Renderer {
                         // todo check below
                     } else if (t.type === "outside") {
                         name = "hwall.outside";
+                    } else if (t.type == "door" && t.items && t.items.door) {
+                        name = t.items && t.items.door == "open"? "hwall.door.open" : "hwall.door.closed";
                     } else {
                         name = "hwall.f1";
                     }

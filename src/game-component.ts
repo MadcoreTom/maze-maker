@@ -2,9 +2,8 @@ import { Action, ActionDirection, OpenDoorAction, WalkAction } from "./action";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
-import { createInitialState, type State } from "./state";
+import { createInitialState, Sprite, type State } from "./state";
 import type { MyGenerator } from "./types";
-import { kernel } from "./util/distance";
 import type { XY } from "./util/xy";
 
 enum Control {
@@ -170,19 +169,6 @@ export class GameComponent extends HTMLElement {
         }
     }
 
-    // private addAnimation(spriteName: string, type: any /*TODO */) {
-    //     const exists = this.state && this.state.animations.filter(a => a.spriteName === spriteName).length > 0;
-    //     if (!exists && this.state) {
-    //         this.state.animations.push({
-    //             spriteName: spriteName,
-    //             duration: 240,
-    //             starttime: this.lastFrameTime,
-    //             type: type
-    //         })
-
-    //     }
-    // }
-
     private updateAction(key: "left" | "right" | "up" | "down", dx: number, dy: number) {
         if (!this.state) {
             return;
@@ -254,47 +240,6 @@ export class GameComponent extends HTMLElement {
                 }
             }
 
-            // this.state.animations = this.state.animations.filter(anim => {
-            //     const progress = Math.min(1,(time - anim.starttime) / anim.duration);
-            //     if(anim.type == "RIGHT"){
-            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-            //         if(s){
-            //             s.position[0] = 2+ s.tile[0] * 18 + Math.floor(progress * 18);
-            //             if(progress >= 1){
-            //                 s.tile[0]++;
-            //                 s.position[0] = 2+ s.tile[0] * 18;
-            //             }
-            //         }
-            //     } else if(anim.type == "LEFT"){
-            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-            //         if(s){
-            //             s.position[0] = 2+ s.tile[0] * 18 - Math.floor(progress * 18);
-            //             if(progress >= 1){
-            //                 s.tile[0]--;
-            //                 s.position[0] = 2+ s.tile[0] * 18;
-            //             }
-            //         }
-            //     } else  if(anim.type == "DOWN"){
-            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-            //         if(s){
-            //             s.position[1] = 6+ s.tile[1] * 18 + Math.floor(progress * 18);
-            //             if(progress >= 1){
-            //                 s.tile[1]++;
-            //                 s.position[1] = 6+ s.tile[1] * 18;
-            //             }
-            //         }
-            //     } else if(anim.type == "UP"){
-            //         const s= this.state!.sprites.getSpriteByName(anim.spriteName);
-            //         if(s){
-            //             s.position[1] = 5+ s.tile[1] * 18 - Math.floor(progress * 18);
-            //             if(progress >= 1){
-            //                 s.tile[1]--;
-            //                 s.position[1] = 6+ s.tile[1] * 18;
-            //             }
-            //         }
-            //     }
-            //     return progress < 1;
-            // });
         }
 
         if (this.curLayer && this.curGenerator) {
@@ -316,12 +261,28 @@ export class GameComponent extends HTMLElement {
             }
             if (!this.curGenerator && this.state) {
                 // last generator step
-                let pos:XY = this.state.start || [1,1];
-                this.state.sprites.addSprite("player", {
-                    position: [pos[0] * 18, pos[1] * 18],
+                let pos: XY = this.state.start || [1, 1];
+                const sprite: Sprite = {
+                    position: [0, 0],
                     tile: pos,
                     sprite: { left: 0, top: 0, width: 16, height: 12 },
-                });
+                };
+                this.state.sprites.addSprite("player", sprite);
+                sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
+                sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
+                // init actions
+                this.state.actions = {
+                    left: null,
+                    right: null,
+                    up: null,
+                    down: null,
+                };
+
+                this.updateAction("left", -1, 0);
+                this.updateAction("right", 1, 0);
+                this.updateAction("up", 0, -1);
+                this.updateAction("down", 0, 1);
+                this.updateButtons();
             }
         }
 

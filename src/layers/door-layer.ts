@@ -29,6 +29,9 @@ export class DoorLayer extends LayerLogic {
                     t.items = {};
                 }
                 t.items.door = Math.random() < 0.5 ? "open" : "closed";
+                if(t.items.door == "closed"){
+                    t.solid = true;
+                }
                 yield;
             }
 
@@ -70,6 +73,9 @@ export class DoorLayer extends LayerLogic {
                         t.solid = true;
                     } else {
                         t.items.door = Math.random() < 0.2 ? "open" : "closed";
+                    }
+                    if (t.items.door != "open") {
+                        t.solid = true;
                     }
                 }
                 if (!found || i < found) {
