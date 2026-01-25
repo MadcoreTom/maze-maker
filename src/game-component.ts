@@ -1,4 +1,4 @@
-import { Action, ActionDirection, OpenDoorAction, WalkAction } from "./action";
+import { Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
@@ -160,43 +160,25 @@ export class GameComponent extends HTMLElement {
             };
             // disable all buttons while animating
             if (this.state.animation == null) {
-                this.updateAction("left", -1, 0);
-                this.updateAction("right", 1, 0);
-                this.updateAction("up", 0, -1);
-                this.updateAction("down", 0, 1);
+                this.updateActions();
             }
             this.updateButtons();
         }
     }
 
-    private updateAction(key: "left" | "right" | "up" | "down", dx: number, dy: number) {
+    private updateActions() {
         if (!this.state) {
             return;
         }
-        const kernel: XY[] = [
-            [dx, dy],
-            [2 * dx, 2 * dy],
-        ];
-        const result = this.state.maze.getKernel(this.state.sprites.getSpriteByName("player")!.tile, kernel);
-
-        if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
-            this.state.actions[key] = new WalkAction([dx,dy] as ActionDirection);
-        } else  if (result[0] && result[0].items && "closed" == result[0].items.door && result[1] && !result[1].solid) {
-            this.state.actions[key] = new OpenDoorAction([dx,dy] as ActionDirection);
-        } else  if (result[0] && result[0].items && "locked" == result[0].items.door && result[1] && !result[1].solid) {
-            this.state.actions[key] = new OpenDoorAction([dx,dy] as ActionDirection); // TODO dependent on having key
-        } else {
-            console.log("WHAT", result);
-        }
-        // console.log("result", result, this.state.actions)
+        this.state.actions = calculateAllActions(this.state);
     }
 
     private updateButtons() {
         if (!this.state || !this.elements) {
             return;
         }
-        ["up", "down", "left", "right"].forEach((key)=> {
-            const k = key as "up" | "down" | "left" | "right";
+        const directions: ("up" | "down" | "left" | "right")[] = ["up", "down", "left", "right"];
+        directions.forEach(k => {
             if (this.state!.actions[k]) {
                 this.elements![k].disabled = false;
                 this.elements![k].textContent = this.state!.actions[k].displayName;
@@ -225,21 +207,10 @@ export class GameComponent extends HTMLElement {
                 if (finished) {
                     this.state.animation = null;
                     // TODO calculate next available actions (unless its time for sprites to take turns?)
-                    this.state.actions = {
-                        left: null,
-                        right: null,
-                        up: null,
-                        down: null,
-                    };
-
-                    this.updateAction("left", -1, 0);
-                    this.updateAction("right", 1, 0);
-                    this.updateAction("up", 0, -1);
-                    this.updateAction("down", 0, 1);
+                    this.updateActions();
                     this.updateButtons();
                 }
             }
-
         }
 
         if (this.curLayer && this.curGenerator) {
@@ -270,18 +241,7 @@ export class GameComponent extends HTMLElement {
                 this.state.sprites.addSprite("player", sprite);
                 sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
                 sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
-                // init actions
-                this.state.actions = {
-                    left: null,
-                    right: null,
-                    up: null,
-                    down: null,
-                };
-
-                this.updateAction("left", -1, 0);
-                this.updateAction("right", 1, 0);
-                this.updateAction("up", 0, -1);
-                this.updateAction("down", 0, 1);
+                this.updateActions();
                 this.updateButtons();
             }
         }

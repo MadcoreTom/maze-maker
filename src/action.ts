@@ -1,15 +1,16 @@
 import type { Sprite, State } from "./state";
+import type { XY } from "./util/xy";
 
-export type ActionAnimation = ((delta: number) => boolean);
+export type ActionAnimation = (delta: number) => boolean;
 
 export type ActionDirection = [-1, 0] | [1, 0] | [0, -1] | [0, 1];
 
 export abstract class Action {
-    public constructor(public readonly displayName: string) { }
-    public onClick(state: State): void { }
+    public constructor(public readonly displayName: string) {}
+    public onClick(state: State): void {}
     public getAnimation(state: State): null | ActionAnimation {
         return null;
-    };
+    }
 }
 
 export class WalkAction extends Action {
@@ -33,7 +34,6 @@ export class WalkAction extends Action {
     }
 }
 
-
 export class OpenDoorAction extends Action {
     public constructor(private readonly direction: ActionDirection) {
         super("Open Door");
@@ -49,7 +49,6 @@ export class OpenDoorAction extends Action {
                 tile.items.door = "open";
             }
         }
-
     }
 }
 
@@ -67,5 +66,45 @@ function walkAnimation(dx: number, dy: number, sprite: Sprite): ActionAnimation 
             return true;
         }
         return false;
+    };
+}
+
+/**
+ * Given the state, return the action for the given direction
+ */
+export function calculateAvailableAction(state: State, dx: number, dy: number): Action | null {
+    const kernel: XY[] = [
+        [dx, dy],
+        [2 * dx, 2 * dy],
+    ];
+    const result = state.maze.getKernel(state.sprites.getSpriteByName("player")!.tile, kernel);
+
+    if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
+        return new WalkAction([dx, dy] as ActionDirection);
+    } else if (
+        result[0] &&
+        result[0].items &&
+        ("closed" == result[0].items.door || "locked" == result[0].items.door) &&
+        result[1] &&
+        !result[1].solid
+    ) {
+        return new OpenDoorAction([dx, dy] as ActionDirection);
+    } else {
+        console.log("WHAT", result);
+        return null;
+    }
+}
+
+export function calculateAllActions(state: State): {
+    left: Action | null;
+    right: Action | null;
+    up: Action | null;
+    down: Action | null;
+} {
+    return {
+        left: calculateAvailableAction(state, -1, 0),
+        right: calculateAvailableAction(state, 1, 0),
+        up: calculateAvailableAction(state, 0, -1),
+        down: calculateAvailableAction(state, 0, 1),
     };
 }
