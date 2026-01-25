@@ -91,11 +91,18 @@ export class PixelRenderer implements Renderer {
                     }
                     tiles.draw(ctx, [px, py], name);
                 } else {
+                    // normal tile
                     const py = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
                     if (t.type === "outside") {
                         tiles.draw(ctx, [px, py], "tile.outside");
                     } else {
                         tiles.draw(ctx, [px, py], "tile.f1");
+                    }
+                    // blank out undiscovered, shade those out of view
+                    // TODO just don't draw the tiles we don't need, rather than drawing a box over them
+                    if (t.visTimestamp != state.visTimestamp) {
+                        ctx.fillStyle = t.visTimestamp < 0 ? "red" : "rgba(0.05,0,0.05,0.5)";
+                        ctx.fillRect(px, py, W_LARGE, H_LARGE);
                     }
                 }
             }

@@ -1,4 +1,4 @@
-import type { Tile } from "../state";
+import type { State, Tile } from "../state";
 import type { Array2 } from "./array2";
 import { addXY, type XY } from "./xy";
 
@@ -39,6 +39,34 @@ export function* calcDistance(
         yield;
     }
     return last;
+}
+
+/**
+ * Calculates all reachable tiles <= distance, and sets the timestamp 
+ */
+export function calcVisibility(state:State, start:XY, distance:number, timestamp: number){
+    const startTile = state.maze.get(start[0], start[1]) as Tile;
+    startTile.visDistance = 0;
+    startTile.visTimestamp = timestamp;
+    let tempVisCount = 0;
+    const queue: XY[] = [start];
+    while (queue.length > 0){
+        const cur = queue.shift() as XY;
+        const t = state.maze.get(cur[0], cur[1]) as Tile;
+        if (t.visDistance < distance) {
+            state.maze.getKernel(cur, KERNEL_UDLR).forEach((n, i) => {
+                // if not visited
+                if (n && n.visTimestamp != timestamp && !n?.solid) {
+                    n.visTimestamp = timestamp; // set tile to indicate that it was visible at the current time
+                    n.visDistance = t.visDistance + 1; // set the distance too
+                    tempVisCount++; 
+                    queue.push(addXY(KERNEL_UDLR[i], cur));
+                }
+            });
+        }
+    }
+    console.log("VIS", tempVisCount)
+    state.visTimestamp = timestamp;
 }
 
 export function* tracePath(

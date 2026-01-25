@@ -43,7 +43,10 @@ export class MazeSolverLayer extends LayerLogic {
                             v.roomId = high;
                         }
                     });
-                    state.maze.set(x, y, { solid: false, roomId: high, type: "room" });
+                    const t = state.maze.get(x, y)!;//  { solid: false, roomId: high, type: "room" }
+                    t.solid = false;
+                    t.roomId = high;
+                    t.type = "room"
                     yield;
                 }
                 // vertical
@@ -55,7 +58,10 @@ export class MazeSolverLayer extends LayerLogic {
                             v.roomId = high;
                         }
                     });
-                    state.maze.set(x, y, { solid: false, roomId: high, type: "hall" });
+                    const t = state.maze.get(x, y)!;///, { solid: false, roomId: high, type: "hall" });
+                    t.solid = false;
+                    t.roomId = high;
+                    t.type = "hall";
                     yield;
                 }
                 cur = queue.shift();

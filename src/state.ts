@@ -11,6 +11,8 @@ export type Tile = {
     mainPath?: true;
     mainPathBeforeDoor?: true;
     items?: Items;
+    visTimestamp: number;
+    visDistance: number;
 };
 
 export type State = {
@@ -27,6 +29,7 @@ export type State = {
         up: null | Action;
         down: null | Action;
     };
+    visTimestamp: number; // The timestamp of the latest pass of visibility calculations
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -67,15 +70,16 @@ export type Animation = {
 
 export function createInitialState(): State {
     return {
-        maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside" })),
+        maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside", visTimestamp:-1, visDistance: 99999 })),
         sprites: new Sprites(),
         animation: null,
         actions: {
-            left: new WalkAction([-1,0]),
-            right: new WalkAction([1,0]), 
-            up: new WalkAction([0,-1]),
-            down: new WalkAction([0,1])
-        }
+            left: null,
+            right: null,
+            up: null,
+            down: null
+        },
+        visTimestamp: 0
     };
 }
 

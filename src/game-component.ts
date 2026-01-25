@@ -4,6 +4,7 @@ import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
 import { createInitialState, Sprite, type State } from "./state";
 import type { MyGenerator } from "./types";
+import { calcVisibility } from "./util/distance";
 import type { XY } from "./util/xy";
 
 enum Control {
@@ -166,11 +167,15 @@ export class GameComponent extends HTMLElement {
         }
     }
 
+    // TODO this just has null check and calls another function. it cam be improved to be called from places where its already know not to be null
     private updateActions() {
         if (!this.state) {
             return;
         }
         this.state.actions = calculateAllActions(this.state);
+
+        // TODO move this to its own place
+        calcVisibility(this.state, this.state.sprites.getSpriteByName("player")!.tile, 4, Date.now());
     }
 
     private updateButtons() {
