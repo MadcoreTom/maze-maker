@@ -1,8 +1,8 @@
-import { Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
+import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
-import { createInitialState, Sprite, type State } from "./state";
+import { createInitialState, type Sprite, type State } from "./state";
 import type { MyGenerator } from "./types";
 import { calcVisibility } from "./util/distance";
 import type { XY } from "./util/xy";
@@ -237,7 +237,7 @@ export class GameComponent extends HTMLElement {
             }
             if (!this.curGenerator && this.state) {
                 // last generator step
-                let pos: XY = this.state.start || [1, 1];
+                const pos: XY = this.state.start || [1, 1];
                 const sprite: Sprite = {
                     position: [0, 0],
                     tile: pos,

@@ -29,7 +29,7 @@ export class DoorLayer extends LayerLogic {
                     t.items = {};
                 }
                 t.items.door = Math.random() < 0.5 ? "open" : "closed";
-                if(t.items.door == "closed"){
+                if (t.items.door == "closed") {
                     t.solid = true;
                 }
                 yield;

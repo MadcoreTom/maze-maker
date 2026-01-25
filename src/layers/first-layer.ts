@@ -31,7 +31,13 @@ export class FirstLayer extends LayerLogic {
             let room = 1;
             s.maze = new Array2<Tile>(w, h, (x, y) => {
                 const solid = x % 2 === 0 || y % 2 === 0;
-                return { solid: solid, roomId: !solid ? room++ : 0, type: "outside", visDistance: 9999, visTimestamp: -1 };
+                return {
+                    solid: solid,
+                    roomId: !solid ? room++ : 0,
+                    type: "outside",
+                    visDistance: 9999,
+                    visTimestamp: -1,
+                };
             });
         };
     }

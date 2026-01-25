@@ -1,4 +1,4 @@
-import { Action, ActionAnimation,WalkAction } from "./action";
+import { type Action, type ActionAnimation, WalkAction } from "./action";
 import { Array2 } from "./util/array2";
 import { cloneXY, type Rect, type XY } from "./util/xy";
 
@@ -70,16 +70,22 @@ export type Animation = {
 
 export function createInitialState(): State {
     return {
-        maze: new Array2<Tile>(1, 1, () => ({ roomId: 0, solid: true, type: "outside", visTimestamp:-1, visDistance: 99999 })),
+        maze: new Array2<Tile>(1, 1, () => ({
+            roomId: 0,
+            solid: true,
+            type: "outside",
+            visTimestamp: -1,
+            visDistance: 99999,
+        })),
         sprites: new Sprites(),
         animation: null,
         actions: {
             left: null,
             right: null,
             up: null,
-            down: null
+            down: null,
         },
-        visTimestamp: 0
+        visTimestamp: 0,
     };
 }
 

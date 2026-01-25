@@ -1,5 +1,5 @@
 import type { State, Tile } from "../state";
-import { addXY, type XY } from "../util/xy";
+import { addXY, type Rect, type XY } from "../util/xy";
 import { PALETTE } from "./colour";
 import { ImageMap } from "./image-map";
 import type { Renderer } from "./render-interface";
@@ -33,53 +33,125 @@ const W_LARGE = 16;
 const H_SMALL = 6;
 const H_LARGE = 12;
 
-// TODO have the kernels be cosntants
-// TODO these coujld be baked in instead of checking each frame
-function calcVisibility([x,y]:XY, tile:Tile, state:State): "hidden" | "shaded" | "visible" {
+// Kernel constants for visibility calculation
+const DIAGONAL: XY[] = [
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1],
+] as const;
+const LEFT_RIGHT: XY[] = [
+    [-1, 0],
+    [1, 0],
+] as const;
+const UP_DOWN: XY[] = [
+    [0, -1],
+    [0, 1],
+] as const;
 
+// Centralized position function that handles coordinate parity logic
+function getRect([x, y]: XY, offset: XY): Rect {
+    const rect: Rect = {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+    };
+    if (x % 2 == 0) {
+        rect.left = offset[0] + (x * (W_SMALL + W_LARGE)) / 2;
+        rect.width = W_SMALL;
+    } else {
+        rect.left = offset[0] + ((x - 1) * (W_SMALL + W_LARGE)) / 2 + W_SMALL;
+        rect.width = W_LARGE;
+    }
 
+    if (y % 2 == 0) {
+        rect.top = offset[1] + (y * (H_SMALL + H_LARGE)) / 2;
+        rect.height = H_SMALL;
+    } else {
+        rect.top = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
+        rect.height = H_LARGE;
+    }
+    return rect;
+}
+
+// Tile name selection functions
+function getCornerName(x: number, y: number, tile: Tile, maze: any): string {
+    if (tile.type === "outside") return "corner.outside";
+    if (tile.type === "wall") {
+        const below = maze.get(x, y + 1);
+        return below && below.type === "wall" ? "corner.full" : "corner.w1";
+    }
+    return "corner.f1";
+}
+
+function getVWallName(tile: Tile): string {
+    if (tile.type === "outside") return "vwall.outside";
+    if (tile.type === "wall") return "vwall.w1";
+    return "vwall.f1";
+}
+
+function getHWallName(tile: Tile): string {
+    if (tile.type === "wall") return "hwall.w1";
+    if (tile.type === "outside") return "hwall.outside";
+    if (tile.type === "door") return tile.items && tile.items.door === "open" ? "hwall.door.open" : "hwall.door.closed";
+    return "hwall.f1";
+}
+
+function getTileName(tile: Tile): string {
+    if (tile.type === "outside") return "tile.outside";
+    return "tile.f1";
+}
+
+function applyShading(ctx: CanvasRenderingContext2D, rect: Rect): void {
+    ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
+    ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+}
+
+function calcVisibility([x, y]: XY, tile: Tile, state: State): "hidden" | "shaded" | "visible" {
     if (x % 2 == 0 && y % 2 == 0) {
         // corner (check diagonal neighbours)
-        const visible = state.maze.getKernel([x, y], [[-1, -1], [-1, 1], [1, -1], [1, 1]]).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
+        const visible =
+            state.maze.getKernel([x, y], DIAGONAL).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
         if (visible) {
             return "visible";
         }
-        const shaded = state.maze.getKernel([x, y], [[-1, -1], [-1, 1], [1, -1], [1, 1]]).filter(t => t && t.visTimestamp >= 0).length > 0;
+        const shaded = state.maze.getKernel([x, y], DIAGONAL).filter(t => t && t.visTimestamp >= 0).length > 0;
         return shaded ? "shaded" : "hidden";
     }
 
     if (x % 2 == 1 && y % 2 == 0) {
         // h wall (check up and down)
-        const visible = state.maze.getKernel([x, y], [[0, -1], [0, 1]]).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
+        const visible =
+            state.maze.getKernel([x, y], UP_DOWN).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
         if (visible) {
             return "visible";
         }
-        const shaded = state.maze.getKernel([x, y], [[0, -1], [0, 1]]).filter(t => t && t.visTimestamp >= 0).length > 0;
+        const shaded = state.maze.getKernel([x, y], UP_DOWN).filter(t => t && t.visTimestamp >= 0).length > 0;
         return shaded ? "shaded" : "hidden";
     }
 
     if (x % 2 == 0 && y % 2 == 1) {
         // v wall (check left and right)
-        const visible = state.maze.getKernel([x, y], [[-1, 0], [1, 0]]).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
+        const visible =
+            state.maze.getKernel([x, y], LEFT_RIGHT).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
         if (visible) {
             return "visible";
         }
-        const shaded = state.maze.getKernel([x, y], [[-1, 0], [1, 0]]).filter(t => t && t.visTimestamp >= 0).length > 0;
+        const shaded = state.maze.getKernel([x, y], LEFT_RIGHT).filter(t => t && t.visTimestamp >= 0).length > 0;
         return shaded ? "shaded" : "hidden";
-    }
-
-     else if(x%2 == 1 && y%2 === 1){
+    } else if (x % 2 == 1 && y % 2 === 1) {
         // tile. just check self
-        if(tile.visTimestamp === state.visTimestamp){
+        if (tile.visTimestamp === state.visTimestamp) {
             return "visible";
-        } else if(tile.visTimestamp >= 0){
+        } else if (tile.visTimestamp >= 0) {
             return "shaded";
         } else {
-            return "hidden"
+            return "hidden";
         }
-     }
+    }
 
-     return "visible";
+    return "visible";
 }
 
 export class PixelRenderer implements Renderer {
@@ -96,83 +168,37 @@ export class PixelRenderer implements Renderer {
         }
 
         state.maze.forEach((x, y, t) => {
+            const visibility = calcVisibility([x, y], t, state);
+            if (visibility === "hidden") {
+                return;
+            }
 
-         const visibility = calcVisibility([x,y], t, state)
-            if(visibility === "hidden"){
-                // do nothing
-            } else if (x % 2 === 0) {
-                const px = offset[0] + (x * (W_SMALL + W_LARGE)) / 2;
+            const rect = getRect([x, y], offset);
+            let tileName: string;
 
+            if (x % 2 === 0) {
                 if (y % 2 === 0) {
-                    const py = offset[1] + (y * (H_SMALL + H_LARGE)) / 2;
-                    if (t.type === "outside") {
-                        tiles.draw(ctx, [px, py], "corner.outside");
-                    } else if (t.type === "wall") {
-                        const b = state.maze.get(x, y + 1);
-                        if (b && b.type === "wall") {
-                            tiles.draw(ctx, [px, py], "corner.full");
-                        } else {
-                            tiles.draw(ctx, [px, py], "corner.w1");
-                        }
-                    } else {
-                        tiles.draw(ctx, [px, py], "corner.f1");
-                    }
-                    if (visibility == "shaded") {
-                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
-                        ctx.fillRect(px, py, W_SMALL, H_SMALL);
-                    }
+                    // Corner
+                    tileName = getCornerName(x, y, t, state.maze);
                 } else {
-                    const py = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
-                    if (t.type === "outside") {
-                        tiles.draw(ctx, [px, py], "vwall.outside");
-                    } else if (t.type === "wall") {
-                        tiles.draw(ctx, [px, py], "vwall.w1");
-                    } else {
-                        tiles.draw(ctx, [px, py], "vwall.f1");
-                    }
-                    if (visibility == "shaded") {
-                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
-                        ctx.fillRect(px, py, W_SMALL, H_LARGE);
-                    }
+                    // Vertical wall
+                    tileName = getVWallName(t);
                 }
             } else {
-                const px = offset[0] + ((x - 1) * (W_SMALL + W_LARGE)) / 2 + W_SMALL;
                 if (y % 2 === 0) {
-                    const py = offset[1] + (y * (H_SMALL + H_LARGE)) / 2;
-                    let name: string;
-                    if (t.type === "wall") {
-                        name = "hwall.w1";
-                        // todo check below
-                    } else if (t.type === "outside") {
-                        name = "hwall.outside";
-                    } else if (t.type == "door" && t.items && t.items.door) {
-                        name = t.items && t.items.door == "open"? "hwall.door.open" : "hwall.door.closed";
-                    } else {
-                        name = "hwall.f1";
-                    }
-                    tiles.draw(ctx, [px, py], name);
-                    if (visibility == "shaded") {
-                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
-                        ctx.fillRect(px, py, W_LARGE, H_SMALL);
-                    }
+                    // Horizontal wall
+                    tileName = getHWallName(t);
                 } else {
-                    // normal tile
-                    const py = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
-                    if (t.type === "outside") {
-                        tiles.draw(ctx, [px, py], "tile.outside");
-                    } else {
-                        tiles.draw(ctx, [px, py], "tile.f1");
-                    }
-                    // blank out undiscovered, shade those out of view
-                    // TODO just don't draw the tiles we don't need, rather than drawing a box over them
-                    if (visibility == "shaded") {
-                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
-                        ctx.fillRect(px, py, W_LARGE, H_LARGE);
-                    }
+                    // Normal tile
+                    tileName = getTileName(t);
                 }
             }
+
+            tiles.draw(ctx, [rect.left, rect.top], tileName);
+            if (visibility === "shaded") {
+                applyShading(ctx, rect);
+            }
         });
-        tiles.draw(ctx, [10, 10], "test");
 
         // sprites
         state.sprites.forEachSprite(s => {
