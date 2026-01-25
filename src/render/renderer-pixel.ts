@@ -1,14 +1,14 @@
-import type { State } from "../state";
+import type { State, Tile } from "../state";
 import { addXY, type XY } from "../util/xy";
 import { PALETTE } from "./colour";
 import { ImageMap } from "./image-map";
 import type { Renderer } from "./render-interface";
 
 const tiles = new ImageMap("tiles.png", {
-    "corner.outside": { left: 2, top: 18, width: 2, height: 8 },
-    "corner.full": { left: 0, top: 0, width: 2, height: 8 },
-    "corner.w1": { left: 20, top: 0, width: 2, height: 8 },
-    "corner.f1": { left: 20, top: 18, width: 2, height: 8 },
+    "corner.outside": { left: 2, top: 18, width: 2, height: 6 },
+    "corner.full": { left: 0, top: 0, width: 2, height: 6 },
+    "corner.w1": { left: 20, top: 0, width: 2, height: 6 },
+    "corner.f1": { left: 20, top: 18, width: 2, height: 6 },
 
     "vwall.outside": { left: 2, top: 6, width: 2, height: 12 },
     "vwall.w1": { left: 0, top: 6, width: 2, height: 12 },
@@ -33,6 +33,55 @@ const W_LARGE = 16;
 const H_SMALL = 6;
 const H_LARGE = 12;
 
+// TODO have the kernels be cosntants
+// TODO these coujld be baked in instead of checking each frame
+function calcVisibility([x,y]:XY, tile:Tile, state:State): "hidden" | "shaded" | "visible" {
+
+
+    if (x % 2 == 0 && y % 2 == 0) {
+        // corner (check diagonal neighbours)
+        const visible = state.maze.getKernel([x, y], [[-1, -1], [-1, 1], [1, -1], [1, 1]]).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
+        if (visible) {
+            return "visible";
+        }
+        const shaded = state.maze.getKernel([x, y], [[-1, -1], [-1, 1], [1, -1], [1, 1]]).filter(t => t && t.visTimestamp >= 0).length > 0;
+        return shaded ? "shaded" : "hidden";
+    }
+
+    if (x % 2 == 1 && y % 2 == 0) {
+        // h wall (check up and down)
+        const visible = state.maze.getKernel([x, y], [[0, -1], [0, 1]]).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
+        if (visible) {
+            return "visible";
+        }
+        const shaded = state.maze.getKernel([x, y], [[0, -1], [0, 1]]).filter(t => t && t.visTimestamp >= 0).length > 0;
+        return shaded ? "shaded" : "hidden";
+    }
+
+    if (x % 2 == 0 && y % 2 == 1) {
+        // v wall (check left and right)
+        const visible = state.maze.getKernel([x, y], [[-1, 0], [1, 0]]).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
+        if (visible) {
+            return "visible";
+        }
+        const shaded = state.maze.getKernel([x, y], [[-1, 0], [1, 0]]).filter(t => t && t.visTimestamp >= 0).length > 0;
+        return shaded ? "shaded" : "hidden";
+    }
+
+     else if(x%2 == 1 && y%2 === 1){
+        // tile. just check self
+        if(tile.visTimestamp === state.visTimestamp){
+            return "visible";
+        } else if(tile.visTimestamp >= 0){
+            return "shaded";
+        } else {
+            return "hidden"
+        }
+     }
+
+     return "visible";
+}
+
 export class PixelRenderer implements Renderer {
     render(ctx: CanvasRenderingContext2D, state: State): void {
         // TODO get canvas size somewhere
@@ -47,7 +96,11 @@ export class PixelRenderer implements Renderer {
         }
 
         state.maze.forEach((x, y, t) => {
-            if (x % 2 === 0) {
+
+         const visibility = calcVisibility([x,y], t, state)
+            if(visibility === "hidden"){
+                // do nothing
+            } else if (x % 2 === 0) {
                 const px = offset[0] + (x * (W_SMALL + W_LARGE)) / 2;
 
                 if (y % 2 === 0) {
@@ -64,6 +117,10 @@ export class PixelRenderer implements Renderer {
                     } else {
                         tiles.draw(ctx, [px, py], "corner.f1");
                     }
+                    if (visibility == "shaded") {
+                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
+                        ctx.fillRect(px, py, W_SMALL, H_SMALL);
+                    }
                 } else {
                     const py = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
                     if (t.type === "outside") {
@@ -72,6 +129,10 @@ export class PixelRenderer implements Renderer {
                         tiles.draw(ctx, [px, py], "vwall.w1");
                     } else {
                         tiles.draw(ctx, [px, py], "vwall.f1");
+                    }
+                    if (visibility == "shaded") {
+                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
+                        ctx.fillRect(px, py, W_SMALL, H_LARGE);
                     }
                 }
             } else {
@@ -90,6 +151,10 @@ export class PixelRenderer implements Renderer {
                         name = "hwall.f1";
                     }
                     tiles.draw(ctx, [px, py], name);
+                    if (visibility == "shaded") {
+                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
+                        ctx.fillRect(px, py, W_LARGE, H_SMALL);
+                    }
                 } else {
                     // normal tile
                     const py = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
@@ -100,8 +165,8 @@ export class PixelRenderer implements Renderer {
                     }
                     // blank out undiscovered, shade those out of view
                     // TODO just don't draw the tiles we don't need, rather than drawing a box over them
-                    if (t.visTimestamp != state.visTimestamp) {
-                        ctx.fillStyle = t.visTimestamp < 0 ? "red" : "rgba(0.05,0,0.05,0.5)";
+                    if (visibility == "shaded") {
+                        ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
                         ctx.fillRect(px, py, W_LARGE, H_LARGE);
                     }
                 }
