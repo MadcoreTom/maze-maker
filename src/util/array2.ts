@@ -1,4 +1,4 @@
-import { addXY, type XY } from "./xy";
+import { addXY, type XY, type Rect } from "./xy";
 
 export class Array2<T> {
     private data: T[] = [];
@@ -15,7 +15,7 @@ export class Array2<T> {
     }
 
     public inBounds(x: number, y: number): boolean {
-        return x >= 0 && y >= 0 && x < this.w && y <= this.h;
+        return x >= 0 && y >= 0 && x < this.w && y < this.h;
     }
 
     public get(x: number, y: number): T | undefined {
@@ -51,6 +51,17 @@ export class Array2<T> {
     // TODO create a foreach that returns a generator that yeilds for each element
     // or kind of curries and returns a list of functions withn o arguments that
     // the caller can invoke and yield in between
+
+    public forEachRect(rect: Rect, fn: (x: number, y: number, v: T) => void) {
+        for (let y = rect.top; y < rect.top + rect.height; y++) {
+            for (let x = rect.left; x < rect.left + rect.width; x++) {
+                const value = this.get(x, y);
+                if (value !== undefined) {
+                    fn(x, y, value);
+                }
+            }
+        }
+    }
 
     public getKernel(centre: XY, offset: XY[]): (T | undefined)[] {
         return offset.map(o => addXY(centre, o)).map(([x, y]) => this.get(x, y));

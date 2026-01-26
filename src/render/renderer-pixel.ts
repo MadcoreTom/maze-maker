@@ -14,6 +14,8 @@ const tiles = new ImageMap("tiles.png", {
     "vwall.outside": { left: 2, top: 6, width: 2, height: 12 },
     "vwall.w1": { left: 0, top: 6, width: 2, height: 12 },
     "vwall.f1": { left: 20, top: 6, width: 2, height: 12 },
+    "vwall.door.closed": { left: 56, top: 6, width: 2, height: 12 },
+    "vwall.door.open": { left: 74, top: 6, width: 2, height: 12 },
 
     "hwall.outside": { left: 2, top: 18, width: 16, height: 6 },
     "hwall.wall_outside": { left: 2, top: 0, width: 16, height: 6 },
@@ -53,28 +55,12 @@ const UP_DOWN: XY[] = [
 
 // Centralized position function that handles coordinate parity logic
 function getRect([x, y]: XY, offset: XY): Rect {
-    const rect: Rect = {
-        left: 0,
-        top: 0,
-        width: 0,
-        height: 0,
+    return {
+        left: offset[0] + Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL,
+        top: offset[1] + Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL,
+        width: x % 2 == 0 ? W_SMALL : W_LARGE,
+        height: y % 2 == 0 ? H_SMALL : H_LARGE,
     };
-    if (x % 2 == 0) {
-        rect.left = offset[0] + (x * (W_SMALL + W_LARGE)) / 2;
-        rect.width = W_SMALL;
-    } else {
-        rect.left = offset[0] + ((x - 1) * (W_SMALL + W_LARGE)) / 2 + W_SMALL;
-        rect.width = W_LARGE;
-    }
-
-    if (y % 2 == 0) {
-        rect.top = offset[1] + (y * (H_SMALL + H_LARGE)) / 2;
-        rect.height = H_SMALL;
-    } else {
-        rect.top = offset[1] + ((y - 1) * (H_SMALL + H_LARGE)) / 2 + H_SMALL;
-        rect.height = H_LARGE;
-    }
-    return rect;
 }
 
 // Tile name selection functions
@@ -83,7 +69,7 @@ function getCornerName(x: number, y: number, tile: Tile, maze: any): string {
     if (tile.type === "wall") {
         const below = maze.get(x, y + 1);
         // TODO only use corner.full if below is a wall, and below-left or below-right has visTimestamp >=0
-        return !below || below.type === "wall" ? "corner.full" : (below && (below.type === "outside" || below.visTimestamp < 0) ? "corner.wall_outside" :"corner.w1");
+        return !below || below.type === "wall" || below.type === "door" ? "corner.full" : (below && (below.type === "outside" || below.visTimestamp < 0) ? "corner.wall_outside" :"corner.w1");
     }
     return "corner.f1";
 }
@@ -91,6 +77,10 @@ function getCornerName(x: number, y: number, tile: Tile, maze: any): string {
 function getVWallName(tile: Tile): string {
     if (tile.type === "outside") return "vwall.outside";
     if (tile.type === "wall") return "vwall.w1";
+    if (tile.type === "door") {
+        const closed = tile.items && tile.items.door && tile.items.door !== "open";
+        return closed ? "vwall.door.closed" : "vwall.door.open";
+    }
     return "vwall.f1";
 }
 
