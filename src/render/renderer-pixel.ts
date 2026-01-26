@@ -6,6 +6,7 @@ import type { Renderer } from "./render-interface";
 
 const tiles = new ImageMap("tiles.png", {
     "corner.outside": { left: 2, top: 18, width: 2, height: 6 },
+     "corner.wall_outside": { left: 0, top: 18, width: 2, height: 6 },
     "corner.full": { left: 0, top: 0, width: 2, height: 6 },
     "corner.w1": { left: 20, top: 0, width: 2, height: 6 },
     "corner.f1": { left: 20, top: 18, width: 2, height: 6 },
@@ -15,6 +16,7 @@ const tiles = new ImageMap("tiles.png", {
     "vwall.f1": { left: 20, top: 6, width: 2, height: 12 },
 
     "hwall.outside": { left: 2, top: 18, width: 16, height: 6 },
+    "hwall.wall_outside": { left: 2, top: 0, width: 16, height: 6 },
     "hwall.w1": { left: 22, top: 0, width: 16, height: 6 },
     "hwall.f1": { left: 22, top: 18, width: 16, height: 6 },
     "hwall.door.open": { left: 76, top: 0, width: 16, height: 6 },
@@ -80,7 +82,8 @@ function getCornerName(x: number, y: number, tile: Tile, maze: any): string {
     if (tile.type === "outside") return "corner.outside";
     if (tile.type === "wall") {
         const below = maze.get(x, y + 1);
-        return below && below.type === "wall" ? "corner.full" : "corner.w1";
+        // TODO only use corner.full if below is a wall, and below-left or below-right has visTimestamp >=0
+        return !below || below.type === "wall" ? "corner.full" : (below && (below.type === "outside" || below.visTimestamp < 0) ? "corner.wall_outside" :"corner.w1");
     }
     return "corner.f1";
 }
@@ -91,8 +94,11 @@ function getVWallName(tile: Tile): string {
     return "vwall.f1";
 }
 
-function getHWallName(tile: Tile): string {
-    if (tile.type === "wall") return "hwall.w1";
+function getHWallName(x: number, y: number, tile: Tile, maze: any): string {
+    if (tile.type === "wall") {
+        const below = maze.get(x, y + 1);
+        return !below || (below.type === "outside" || below.visTimestamp < 0) ? "hwall.wall_outside" : "hwall.w1";
+    }
     if (tile.type === "outside") return "hwall.outside";
     if (tile.type === "door") return tile.items && tile.items.door === "open" ? "hwall.door.open" : "hwall.door.closed";
     return "hwall.f1";
@@ -187,7 +193,7 @@ export class PixelRenderer implements Renderer {
             } else {
                 if (y % 2 === 0) {
                     // Horizontal wall
-                    tileName = getHWallName(t);
+                    tileName = getHWallName(x,y,t, state.maze);
                 } else {
                     // Normal tile
                     tileName = getTileName(t);
