@@ -10,10 +10,12 @@ const tiles = new ImageMap("tiles.png", {
     "corner.full": { left: 0, top: 0, width: 2, height: 6 },
     "corner.w1": { left: 20, top: 0, width: 2, height: 6 },
     "corner.f1": { left: 20, top: 18, width: 2, height: 6 },
+    "corner.f2": { left: 38, top: 18, width: 2, height: 6 },
 
     "vwall.outside": { left: 2, top: 6, width: 2, height: 12 },
     "vwall.w1": { left: 0, top: 6, width: 2, height: 12 },
     "vwall.f1": { left: 20, top: 6, width: 2, height: 12 },
+    "vwall.f2": { left: 38, top: 6, width: 2, height: 12 },
     "vwall.door.closed": { left: 56, top: 6, width: 2, height: 12 },
     "vwall.door.open": { left: 74, top: 6, width: 2, height: 12 },
 
@@ -21,6 +23,7 @@ const tiles = new ImageMap("tiles.png", {
     "hwall.wall_outside": { left: 2, top: 0, width: 16, height: 6 },
     "hwall.w1": { left: 22, top: 0, width: 16, height: 6 },
     "hwall.f1": { left: 22, top: 18, width: 16, height: 6 },
+    "hwall.f2": { left: 40, top: 18, width: 16, height: 6 },
     "hwall.door.open": { left: 76, top: 0, width: 16, height: 6 },
     "hwall.door.closed": { left: 58, top: 0, width: 16, height: 6 },
     "hwall.door.open_top": { left: 76, top: 0, width: 16, height: 2 },
@@ -28,6 +31,7 @@ const tiles = new ImageMap("tiles.png", {
 
     "tile.outside": { left: 4, top: 6, width: 16, height: 12 },
     "tile.f1": { left: 22, top: 6, width: 16, height: 12 },
+    "tile.f2": { left: 40, top: 6, width: 16, height: 12 },
 });
 
 const sprites = new ImageMap("sprites.png", {
@@ -65,7 +69,7 @@ function getCornerName(x: number, y: number, tile: Tile, maze: any, showBottom: 
                   : "corner.w1";
         }
     }
-    return "corner.f1";
+    return tile.type == "hall" ?  "corner.f2" :  "corner.f1";
 }
 
 function getVWallName(tile: Tile): string {
@@ -75,7 +79,8 @@ function getVWallName(tile: Tile): string {
         const closed = tile.items && tile.items.door && tile.items.door !== "open";
         return closed ? "vwall.door.closed" : "vwall.door.open";
     }
-    return "vwall.f1";
+   
+       return tile.type == "hall" ?  "vwall.f2" :  "vwall.f1";
 }
 
 function getHWallName(x: number, y: number, tile: Tile, maze: any, showBottom: boolean): string {
@@ -92,12 +97,12 @@ function getHWallName(x: number, y: number, tile: Tile, maze: any, showBottom: b
     }
     if (tile.type === "outside") return "hwall.outside";
     if (tile.type === "door") return tile.items && tile.items.door === "open" ? "hwall.door.open" : "hwall.door.closed";
-    return "hwall.f1";
+    return tile.type == "hall" ?  "hwall.f2" :  "hwall.f1";
 }
 
 function getTileName(tile: Tile): string {
     if (tile.type === "outside") return "tile.outside";
-    return "tile.f1";
+    return tile.type == "hall" ?  "tile.f2" :  "tile.f1";
 }
 
 function applyShading(ctx: CanvasRenderingContext2D, rect: Rect): void {
