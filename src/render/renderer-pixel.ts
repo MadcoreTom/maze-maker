@@ -6,7 +6,7 @@ import type { Renderer } from "./render-interface";
 
 const tiles = new ImageMap("tiles.png", {
     "corner.outside": { left: 2, top: 18, width: 2, height: 6 },
-     "corner.wall_outside": { left: 0, top: 18, width: 2, height: 6 },
+    "corner.wall_outside": { left: 0, top: 18, width: 2, height: 6 },
     "corner.full": { left: 0, top: 0, width: 2, height: 6 },
     "corner.w1": { left: 20, top: 0, width: 2, height: 6 },
     "corner.f1": { left: 20, top: 18, width: 2, height: 6 },
@@ -23,6 +23,8 @@ const tiles = new ImageMap("tiles.png", {
     "hwall.f1": { left: 22, top: 18, width: 16, height: 6 },
     "hwall.door.open": { left: 76, top: 0, width: 16, height: 6 },
     "hwall.door.closed": { left: 58, top: 0, width: 16, height: 6 },
+    "hwall.door.open_top": { left: 76, top: 0, width: 16, height: 2 },
+    "hwall.door.closed_top": { left: 58, top: 0, width: 16, height: 2 },
 
     "tile.outside": { left: 4, top: 6, width: 16, height: 12 },
     "tile.f1": { left: 22, top: 6, width: 16, height: 12 },
@@ -37,22 +39,6 @@ const W_LARGE = 16;
 const H_SMALL = 6;
 const H_LARGE = 12;
 
-// Kernel constants for visibility calculation
-const DIAGONAL: XY[] = [
-    [-1, -1],
-    [-1, 1],
-    [1, -1],
-    [1, 1],
-] as const;
-const LEFT_RIGHT: XY[] = [
-    [-1, 0],
-    [1, 0],
-] as const;
-const UP_DOWN: XY[] = [
-    [0, -1],
-    [0, 1],
-] as const;
-
 // Centralized position function that handles coordinate parity logic
 function getRect([x, y]: XY, offset: XY): Rect {
     return {
@@ -64,12 +50,20 @@ function getRect([x, y]: XY, offset: XY): Rect {
 }
 
 // Tile name selection functions
-function getCornerName(x: number, y: number, tile: Tile, maze: any): string {
+function getCornerName(x: number, y: number, tile: Tile, maze: any, showBottom: boolean): string {
     if (tile.type === "outside") return "corner.outside";
     if (tile.type === "wall") {
-        const below = maze.get(x, y + 1);
-        // TODO only use corner.full if below is a wall, and below-left or below-right has visTimestamp >=0
-        return !below || below.type === "wall" || below.type === "door" ? "corner.full" : (below && (below.type === "outside" || below.visTimestamp < 0) ? "corner.wall_outside" :"corner.w1");
+        if (!showBottom) {
+            return "corner.wall_outside";
+        } else {
+            const below = maze.get(x, y + 1);
+            // TODO only use corner.full if below is a wall, and below-left or below-right has visTimestamp >=0
+            return !below || below.type === "wall" || below.type === "door"
+                ? "corner.full"
+                : below && below.type === "outside"
+                  ? "corner.wall_outside"
+                  : "corner.w1";
+        }
     }
     return "corner.f1";
 }
@@ -84,10 +78,17 @@ function getVWallName(tile: Tile): string {
     return "vwall.f1";
 }
 
-function getHWallName(x: number, y: number, tile: Tile, maze: any): string {
-    if (tile.type === "wall") {
+function getHWallName(x: number, y: number, tile: Tile, maze: any, showBottom: boolean): string {
+    if (tile.type !== "room" && tile.type !== "hall") {
+        if (!showBottom) {
+            if (tile.type === "door")
+                return tile.items && tile.items.door === "open" ? "hwall.door.open_top" : "hwall.door.closed_top"; // TODO only show the top of the door
+            return "hwall.wall_outside";
+        }
+    }
+    if (tile.type == "wall") {
         const below = maze.get(x, y + 1);
-        return !below || (below.type === "outside" || below.visTimestamp < 0) ? "hwall.wall_outside" : "hwall.w1";
+        return !below || below.type === "outside" || below.visTimestamp < 0 ? "hwall.wall_outside" : "hwall.w1";
     }
     if (tile.type === "outside") return "hwall.outside";
     if (tile.type === "door") return tile.items && tile.items.door === "open" ? "hwall.door.open" : "hwall.door.closed";
@@ -100,54 +101,8 @@ function getTileName(tile: Tile): string {
 }
 
 function applyShading(ctx: CanvasRenderingContext2D, rect: Rect): void {
-    ctx.fillStyle = "rgba(0.05,0,0.05,0.5)";
+    ctx.fillStyle = "rgba(0.05,0,0.05,0.65)";
     ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
-}
-
-function calcVisibility([x, y]: XY, tile: Tile, state: State): "hidden" | "shaded" | "visible" {
-    if (x % 2 == 0 && y % 2 == 0) {
-        // corner (check diagonal neighbours)
-        const visible =
-            state.maze.getKernel([x, y], DIAGONAL).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
-        if (visible) {
-            return "visible";
-        }
-        const shaded = state.maze.getKernel([x, y], DIAGONAL).filter(t => t && t.visTimestamp >= 0).length > 0;
-        return shaded ? "shaded" : "hidden";
-    }
-
-    if (x % 2 == 1 && y % 2 == 0) {
-        // h wall (check up and down)
-        const visible =
-            state.maze.getKernel([x, y], UP_DOWN).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
-        if (visible) {
-            return "visible";
-        }
-        const shaded = state.maze.getKernel([x, y], UP_DOWN).filter(t => t && t.visTimestamp >= 0).length > 0;
-        return shaded ? "shaded" : "hidden";
-    }
-
-    if (x % 2 == 0 && y % 2 == 1) {
-        // v wall (check left and right)
-        const visible =
-            state.maze.getKernel([x, y], LEFT_RIGHT).filter(t => t && t.visTimestamp == state.visTimestamp).length > 0;
-        if (visible) {
-            return "visible";
-        }
-        const shaded = state.maze.getKernel([x, y], LEFT_RIGHT).filter(t => t && t.visTimestamp >= 0).length > 0;
-        return shaded ? "shaded" : "hidden";
-    } else if (x % 2 == 1 && y % 2 === 1) {
-        // tile. just check self
-        if (tile.visTimestamp === state.visTimestamp) {
-            return "visible";
-        } else if (tile.visTimestamp >= 0) {
-            return "shaded";
-        } else {
-            return "hidden";
-        }
-    }
-
-    return "visible";
 }
 
 export class PixelRenderer implements Renderer {
@@ -164,8 +119,8 @@ export class PixelRenderer implements Renderer {
         }
 
         state.maze.forEach((x, y, t) => {
-            const visibility = calcVisibility([x, y], t, state);
-            if (visibility === "hidden") {
+            // const visibility = calcVisibility([x, y], t, state);
+            if (!t.discovered) {
                 return;
             }
 
@@ -175,7 +130,7 @@ export class PixelRenderer implements Renderer {
             if (x % 2 === 0) {
                 if (y % 2 === 0) {
                     // Corner
-                    tileName = getCornerName(x, y, t, state.maze);
+                    tileName = getCornerName(x, y, t, state.maze, !!t.discoveredBottom);
                 } else {
                     // Vertical wall
                     tileName = getVWallName(t);
@@ -183,7 +138,7 @@ export class PixelRenderer implements Renderer {
             } else {
                 if (y % 2 === 0) {
                     // Horizontal wall
-                    tileName = getHWallName(x,y,t, state.maze);
+                    tileName = getHWallName(x, y, t, state.maze, !!t.discoveredBottom);
                 } else {
                     // Normal tile
                     tileName = getTileName(t);
@@ -191,7 +146,7 @@ export class PixelRenderer implements Renderer {
             }
 
             tiles.draw(ctx, [rect.left, rect.top], tileName);
-            if (visibility === "shaded") {
+            if (t.visTimestamp !== state.visTimestamp) {
                 applyShading(ctx, rect);
             }
         });

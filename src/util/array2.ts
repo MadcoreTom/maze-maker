@@ -1,10 +1,10 @@
-import { addXY, type XY, type Rect } from "./xy";
+import { addXY, type Rect, type XY } from "./xy";
 
 export class Array2<T> {
     private data: T[] = [];
     public constructor(
-        public readonly w,
-        public readonly h,
+        public readonly w: number,
+        public readonly h: number,
         fill: (x: number, y: number) => T,
     ) {
         for (let y = 0; y < h; y++) {
@@ -20,6 +20,13 @@ export class Array2<T> {
 
     public get(x: number, y: number): T | undefined {
         return this.inBounds(x, y) ? this.data[x + y * this.w] : undefined;
+    }
+
+    public doIf(x: number, y: number, func: (x: number, y: number, v: T) => unknown) {
+        const a = this.get(x, y);
+        if (a !== undefined) {
+            func(x, y, a);
+        }
     }
 
     public set(x: number, y: number, value: T) {

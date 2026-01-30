@@ -50,6 +50,7 @@ export function calcVisibility(state: State, start: XY, distance: number, timest
     startTile.visTimestamp = timestamp;
     let tempVisCount = 0;
     const queue: XY[] = [start];
+    const inRange: XY[] = [];
     while (queue.length > 0) {
         const cur = queue.shift() as XY;
         const t = state.maze.get(cur[0], cur[1]) as Tile;
@@ -64,9 +65,55 @@ export function calcVisibility(state: State, start: XY, distance: number, timest
                 }
             });
         }
+        inRange.push(cur);
     }
-    console.log("VIS", tempVisCount);
     state.visTimestamp = timestamp;
+    // then set discovered
+    // first select only tiles (so odd coords)
+    inRange
+        .filter(([x, y]) => x % 2 === 1 && y % 2 === 1)
+        .forEach(([x, y]) => {
+            // self
+            state.maze.doIf(x, y, (x, y, v) => (v.discovered = true));
+            // left and right
+            state.maze.doIf(x - 1, y, (x, y, v) => {
+                v.discovered = true;
+                v.visTimestamp = timestamp;
+            });
+            state.maze.doIf(x + 1, y, (x, y, v) => {
+                v.discovered = true;
+                v.visTimestamp = timestamp;
+            });
+            // Up and up diagonals discovers top and bottom
+            state.maze.doIf(x, y - 1, (x, y, v) => {
+                v.discovered = true;
+                v.discoveredBottom = true;
+                v.visTimestamp = timestamp;
+            });
+            state.maze.doIf(x - 1, y - 1, (x, y, v) => {
+                v.discovered = true;
+                v.discoveredBottom = true;
+                v.visTimestamp = timestamp;
+            });
+            state.maze.doIf(x + 1, y - 1, (x, y, v) => {
+                v.discovered = true;
+                v.discoveredBottom = true;
+                v.visTimestamp = timestamp;
+            });
+            // down and down diagonals only discovers top
+            state.maze.doIf(x, y + 1, (x, y, v) => {
+                v.discovered = true;
+                v.visTimestamp = timestamp;
+            });
+            state.maze.doIf(x - 1, y + 1, (x, y, v) => {
+                v.discovered = true;
+                v.visTimestamp = timestamp;
+            });
+            state.maze.doIf(x + 1, y + 1, (x, y, v) => {
+                v.discovered = true;
+                v.visTimestamp = timestamp;
+            });
+        });
 }
 
 export function* tracePath(

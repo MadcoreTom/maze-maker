@@ -13,6 +13,8 @@ export type Tile = {
     items?: Items;
     visTimestamp: number;
     visDistance: number;
+    discovered?: boolean;
+    discoveredBottom?: boolean;
 };
 
 export type State = {
