@@ -6,6 +6,7 @@ import type { Renderer } from "./render-interface";
 
 const tiles = new ImageMap("tiles.png", {
     "corner.outside": { left: 2, top: 18, width: 2, height: 6 },
+    "corner.fog": { left: 92, top: 0, width: 2, height: 6 },
     "corner.wall_outside": { left: 0, top: 18, width: 2, height: 6 },
     "corner.full": { left: 0, top: 0, width: 2, height: 6 },
     "corner.w1": { left: 20, top: 0, width: 2, height: 6 },
@@ -13,6 +14,7 @@ const tiles = new ImageMap("tiles.png", {
     "corner.f2": { left: 38, top: 18, width: 2, height: 6 },
 
     "vwall.outside": { left: 2, top: 6, width: 2, height: 12 },
+    "vwall.fog": { left: 92, top: 6, width: 2, height: 12 },
     "vwall.w1": { left: 0, top: 6, width: 2, height: 12 },
     "vwall.f1": { left: 20, top: 6, width: 2, height: 12 },
     "vwall.f2": { left: 38, top: 6, width: 2, height: 12 },
@@ -20,6 +22,7 @@ const tiles = new ImageMap("tiles.png", {
     "vwall.door.open": { left: 74, top: 6, width: 2, height: 12 },
 
     "hwall.outside": { left: 2, top: 18, width: 16, height: 6 },
+    "hwall.fog": { left: 94, top: 0, width: 16, height: 6 },
     "hwall.wall_outside": { left: 2, top: 0, width: 16, height: 6 },
     "hwall.w1": { left: 22, top: 0, width: 16, height: 6 },
     "hwall.f1": { left: 22, top: 18, width: 16, height: 6 },
@@ -32,6 +35,7 @@ const tiles = new ImageMap("tiles.png", {
     "tile.outside": { left: 4, top: 6, width: 16, height: 12 },
     "tile.f1": { left: 22, top: 6, width: 16, height: 12 },
     "tile.f2": { left: 40, top: 6, width: 16, height: 12 },
+    "tile.fog": { left: 94, top: 6, width: 16, height: 12 },
 });
 
 const sprites = new ImageMap("sprites.png", {
@@ -106,8 +110,19 @@ function getTileName(tile: Tile): string {
 }
 
 function applyShading(ctx: CanvasRenderingContext2D, rect: Rect): void {
-    ctx.fillStyle = "rgba(0.05,0,0.05,0.65)";
-    ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+    if(rect.width == W_LARGE){
+        if(rect.height == H_LARGE){
+            tiles.draw(ctx, [rect.left, rect.top],"tile.fog");
+        } else {
+            tiles.draw(ctx, [rect.left, rect.top],"hwall.fog");
+        }
+    } else {
+        if(rect.height == H_LARGE){
+            tiles.draw(ctx, [rect.left, rect.top],"vwall.fog");
+        } else {
+            tiles.draw(ctx, [rect.left, rect.top],"corner.fog");
+        }
+    }
 }
 
 export class PixelRenderer implements Renderer {
