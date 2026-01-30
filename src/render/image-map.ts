@@ -1,11 +1,11 @@
 import type { Rect, XY } from "../util/xy";
 
-export class ImageMap {
+export class ImageMap<T extends string> {
     private image: CanvasImageSource;
     private ready = false;
     public constructor(
         url: string,
-        private readonly map: { [name: string]: Rect },
+        private readonly map: Record<T, Rect>,
     ) {
         this.image = new Image();
         this.image.onload = () => {
@@ -15,7 +15,7 @@ export class ImageMap {
         this.image.src = url;
     }
 
-    public draw(ctx: CanvasRenderingContext2D, pos: XY, name: string) {
+    public draw(ctx: CanvasRenderingContext2D, pos: XY, name: T) {
         const r = this.map[name];
         if (r) {
             this.drawRegion(ctx, pos, r);

@@ -40,6 +40,9 @@ const tiles = new ImageMap("tiles.png", {
 
 const sprites = new ImageMap("sprites.png", {
     player: { left: 0, top: 0, width: 18, height: 12 },
+    start: { left: 16, top: 0, width: 18, height: 12 },
+    end: { left: 32, top: 0, width: 18, height: 12 },
+    key: { left: 48, top: 0, width: 18, height: 12 },
 });
 
 const W_SMALL = 2;
@@ -165,7 +168,7 @@ export class PixelRenderer implements Renderer {
                 }
             }
 
-            tiles.draw(ctx, [rect.left, rect.top], tileName);
+            tiles.draw(ctx, [rect.left, rect.top], tileName as any);
             if (t.visTimestamp !== state.visTimestamp) {
                 applyShading(ctx, rect);
             }
@@ -173,7 +176,17 @@ export class PixelRenderer implements Renderer {
 
         // sprites
         state.sprites.forEachSprite(s => {
-            sprites.drawRegion(ctx, addXY(s.position, offset), s.sprite);
+            const t = state.maze.get(s.tile[0],s.tile[1]);
+            if(!t || t.visTimestamp != state.visTimestamp){
+                // only render if not shaded
+                return;
+            }
+            if (typeof s.sprite === "string") {
+                sprites.draw(ctx, addXY(s.position, offset), s.sprite as any);
+            }
+            else {
+                sprites.drawRegion(ctx, addXY(s.position, offset), s.sprite);
+            }
         });
     }
 }

@@ -60,7 +60,7 @@ export class Sprites {
 export type Sprite = {
     position: XY;
     tile: XY;
-    sprite: Rect;
+    sprite: Rect | string;
 };
 
 export type Animation = {

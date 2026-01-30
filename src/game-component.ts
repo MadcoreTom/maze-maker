@@ -246,6 +246,29 @@ export class GameComponent extends HTMLElement {
                 this.state.sprites.addSprite("player", sprite);
                 sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
                 sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
+
+                this.state.end && this.state.sprites.addSprite("end", {
+                    position: [2 + ((this.state.end[0] - 1) * 18) / 2, 6 + ((this.state.end[1] - 1) * 18) / 2],
+                    sprite: "end",
+                    tile: this.state.end
+                });
+                
+                this.state.start && this.state.sprites.addSprite("end", {
+                    position: [2 + ((this.state.start[0] - 1) * 18) / 2, 6 + ((this.state.start[1] - 1) * 18) / 2],
+                    sprite: "start",
+                    tile: this.state.start
+                })
+                    
+                this.state.maze.forEach((x, y, t) => {
+                    if (t.items && t.items.key) {
+                        this.state!.sprites.addSprite("end", {
+                            position: [2 + ((x - 1) * 18) / 2, 6 + ((y - 1) * 18) / 2],
+                            sprite: "key",
+                            tile: [x,y]
+                        });
+                    }
+                });
+
                 this.updateActions();
                 this.updateButtons();
             }
