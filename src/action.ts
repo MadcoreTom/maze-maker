@@ -105,15 +105,17 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
     } else if (
         result[0] &&
         result[0].items &&
-        ("closed" == result[0].items.door || "locked" == result[0].items.door) &&
         result[1] &&
         !result[1].solid
     ) {
-        return new OpenDoorAction([dx, dy] as ActionDirection);
-    } else {
-        console.log("WHAT", result);
-        return null;
-    }
+        if ("closed" == result[0].items.door) {
+            return new OpenDoorAction([dx, dy] as ActionDirection);
+        } else if ("locked" == result[0].items.door) {
+            // TODO requires key
+            return new OpenDoorAction([dx, dy] as ActionDirection);
+        }
+    } 
+    return null;
 }
 
 export function calculateAllActions(state: State): {
