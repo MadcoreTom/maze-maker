@@ -39,10 +39,10 @@ const tiles = new ImageMap("tiles.png", {
 });
 
 const sprites = new ImageMap("sprites.png", {
-    player: { left: 0, top: 0, width: 18, height: 12 },
-    start: { left: 16, top: 0, width: 18, height: 12 },
-    end: { left: 32, top: 0, width: 18, height: 12 },
-    key: { left: 48, top: 0, width: 18, height: 12 },
+    player: { left: 0, top: 0, width: 16, height: 12 },
+    start: { left: 16, top: 0, width: 16, height: 12 },
+    end: { left: 32, top: 0, width: 16, height: 12 },
+    key: { left: 48, top: 0, width: 16, height: 12 },
 });
 
 const W_SMALL = 2;

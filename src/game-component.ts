@@ -5,7 +5,7 @@ import { PixelRenderer } from "./render/renderer-pixel";
 import { createInitialState, type Sprite, type State } from "./state";
 import type { MyGenerator } from "./types";
 import { calcVisibility } from "./util/distance";
-import type { XY } from "./util/xy";
+import { cloneXY, type XY } from "./util/xy";
 
 enum Control {
     UP,
@@ -197,6 +197,16 @@ export class GameComponent extends HTMLElement {
     private tick(time: number) {
         const delta = Math.min(100, time - this.lastFrameTime);
         this.lastFrameTime = time;
+
+        if (this.state && this.state.triggerNewLevel) {
+            this.state = undefined;
+
+            this.curLayer = L1;
+            this.curLayer!.init(createInitialState());
+            this.curGenerator = this.curLayer!.apply()();
+        }
+
+
         if (this.ctx && this.state) {
             this.renderer.render(this.ctx, this.state);
         } else if (this.ctx && this.curLayer) {
@@ -242,6 +252,7 @@ export class GameComponent extends HTMLElement {
                     position: [0, 0],
                     tile: pos,
                     sprite: { left: 0, top: 0, width: 16, height: 12 },
+                    type: "player"
                 };
                 this.state.sprites.addSprite("player", sprite);
                 sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
@@ -250,13 +261,15 @@ export class GameComponent extends HTMLElement {
                 this.state.end && this.state.sprites.addSprite("end", {
                     position: [2 + ((this.state.end[0] - 1) * 18) / 2, 6 + ((this.state.end[1] - 1) * 18) / 2],
                     sprite: "end",
-                    tile: this.state.end
+                    tile: cloneXY(this.state.end),
+                    type: "end"
                 });
                 
                 this.state.start && this.state.sprites.addSprite("end", {
                     position: [2 + ((this.state.start[0] - 1) * 18) / 2, 6 + ((this.state.start[1] - 1) * 18) / 2],
                     sprite: "start",
-                    tile: this.state.start
+                    tile: cloneXY(this.state.start),
+                    type: "start"
                 })
                     
                 this.state.maze.forEach((x, y, t) => {
@@ -264,7 +277,8 @@ export class GameComponent extends HTMLElement {
                         this.state!.sprites.addSprite("end", {
                             position: [2 + ((x - 1) * 18) / 2, 6 + ((y - 1) * 18) / 2],
                             sprite: "key",
-                            tile: [x,y]
+                            tile: [x,y],
+                            type: "key"
                         });
                     }
                 });

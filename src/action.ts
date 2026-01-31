@@ -1,5 +1,5 @@
 import type { Sprite, State } from "./state";
-import type { XY } from "./util/xy";
+import { addXY, type XY } from "./util/xy";
 
 export type ActionAnimation = (delta: number) => boolean;
 
@@ -31,6 +31,15 @@ export class WalkAction extends Action {
     public getAnimation(state: State): null | ActionAnimation {
         const sprite = state.sprites.getSpriteByName("player");
         return sprite ? walkAnimation(this.direction[0], this.direction[1], sprite) : null;
+    }
+}
+
+class EndAction extends Action {
+    constructor(){
+        super("Next Level");
+    }
+    public onClick(state: State): void {
+        state.triggerNewLevel = true;
     }
 }
 
@@ -77,7 +86,19 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
         [dx, dy],
         [2 * dx, 2 * dy],
     ];
-    const result = state.maze.getKernel(state.sprites.getSpriteByName("player")!.tile, kernel);
+    const coords = state.sprites.getSpriteByName("player")!.tile;
+    const result = state.maze.getKernel(coords, kernel);
+
+    // check sprites
+    if(result[0] && !result[0].solid){
+        const s = state.sprites.getSpritesByXY(addXY(coords, kernel[1]));
+        if(s.length > 0){
+            const end = s.filter(a=>a.type === "end");
+            if(end){
+                return new EndAction(); 
+            }
+        }
+    }
 
     if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
         return new WalkAction([dx, dy] as ActionDirection);

@@ -1,6 +1,6 @@
 import { type Action, type ActionAnimation, WalkAction } from "./action";
 import { Array2 } from "./util/array2";
-import { cloneXY, type Rect, type XY } from "./util/xy";
+import { cloneXY, equalsXY, type Rect, type XY } from "./util/xy";
 
 export type Tile = {
     solid: boolean;
@@ -32,6 +32,7 @@ export type State = {
         down: null | Action;
     };
     visTimestamp: number; // The timestamp of the latest pass of visibility calculations
+    triggerNewLevel?: boolean;
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -51,6 +52,9 @@ export class Sprites {
     public getSpriteByName(name: string): Sprite | undefined {
         return this.spriteMap[name];
     }
+    public getSpritesByXY(xy:XY): Sprite[]{
+        return this.spriteList.filter(s=>equalsXY(xy, s.tile));
+    }
     // TODO implement removeSpriteByName
     public forEachSprite(callback: (sprite: Sprite) => unknown): void {
         this.spriteList.forEach(callback);
@@ -61,6 +65,7 @@ export type Sprite = {
     position: XY;
     tile: XY;
     sprite: Rect | string;
+    type: string;
 };
 
 export type Animation = {
