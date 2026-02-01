@@ -1,4 +1,6 @@
 import { type Action, type ActionAnimation, WalkAction } from "./action";
+import { Entities } from "./entities/entities";
+import type { Entity } from "./entities/entity";
 import { Array2 } from "./util/array2";
 import { cloneXY, equalsXY, type Rect, type XY } from "./util/xy";
 
@@ -15,6 +17,7 @@ export type Tile = {
     visDistance: number;
     discovered?: boolean;
     discoveredBottom?: boolean;
+    entity?: Entity;
 };
 
 export type State = {
@@ -22,7 +25,7 @@ export type State = {
     start?: XY;
     end?: XY;
     farthestFromPath?: XY;
-    sprites: Sprites;
+    entities: Entities;
     animation: ActionAnimation | null;
     viewportSize?: XY;
     actions: {
@@ -33,6 +36,7 @@ export type State = {
     };
     visTimestamp: number; // The timestamp of the latest pass of visibility calculations
     triggerNewLevel?: boolean;
+    inventory: string[];
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -40,32 +44,63 @@ export type Items = {
     key?: true;
     door?: "locked" | "open" | "closed";
 };
-
-export class Sprites {
-    private spriteMap: { [name: string]: Sprite } = {};
-    private spriteList: Sprite[] = [];
-    public addSprite(name: string, sprite: Sprite) {
-        this.spriteMap[name] = sprite;
+/*
+export class Entities {
+    private entityMap: { [name: string]: Entity } = {};
+    private entityList: Entity[] = [];
+    public addEntity(name: string, entity: Entity, state: State) {
+        this.entityMap[name] = entity;
         // TODO check for name collisions
-        this.spriteList.push(sprite);
+        // TODO kill entities already in this position
+        this.entityList.push(entity);
+        const t = state.maze.get(entity.getTile()[0], entity.getTile()[1]);
+        if (t) {
+            t.entity = entity;
+        } else {
+            console.warn("Entity added off the edge of the map", entity.getTile());
+        }
     }
-    public getSpriteByName(name: string): Sprite | undefined {
-        return this.spriteMap[name];
+    public getEntityByName(name: string): Entity | undefined {
+        return this.entityMap[name];
     }
-    public getSpritesByXY(xy:XY): Sprite[]{
-        return this.spriteList.filter(s=>equalsXY(xy, s.tile));
+    public getEntityByXY(xy: XY): Entity[] {
+        // TODO redundant as you can get it from the maze
+        return this.entityList.filter(e => equalsXY(xy, e.getTile()));
     }
-    // TODO implement removeSpriteByName
-    public forEachSprite(callback: (sprite: Sprite) => unknown): void {
-        this.spriteList.forEach(callback);
-    }
-}
 
+    public removeSpriteByName(name: string): boolean {
+        const sprite = this.entityMap[name];
+        if (sprite) {
+            delete this.entityMap[name];
+            const index = this.entityList.indexOf(sprite);
+            if (index > -1) {
+                this.entityList.splice(index, 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public removeEntity(entity: Entity): boolean {
+        // Find the name for this sprite in the map
+        for (const [name, e] of Object.entries(this.entityMap)) {
+            if (e === entity) {
+                return this.removeSpriteByName(name);
+            }
+        }
+        return false;
+    }
+
+    public forEachSprite(callback: (entity: Entity) => unknown): void {
+        this.entityList.forEach(callback);
+    }
+
+    // TODO check for dead
+}
+*/
 export type Sprite = {
-    position: XY;
-    tile: XY;
+    offset: XY;
     sprite: Rect | string;
-    type: string;
 };
 
 export type Animation = {
@@ -84,7 +119,7 @@ export function createInitialState(): State {
             visTimestamp: -1,
             visDistance: 99999,
         })),
-        sprites: new Sprites(),
+        entities: new Entities(),
         animation: null,
         actions: {
             left: null,
@@ -93,6 +128,7 @@ export function createInitialState(): State {
             down: null,
         },
         visTimestamp: 0,
+        inventory: [],
     };
 }
 
@@ -108,5 +144,6 @@ export function cloneState(s: State): State {
         ...s,
         maze: s.maze.clone((x, y, t) => cloneTile(t)),
         viewportSize: cloneXY(s.viewportSize),
+        inventory: [...s.inventory],
     };
 }

@@ -1,3 +1,4 @@
+import { Entity } from "./entities/entity";
 import type { Sprite, State } from "./state";
 import { addXY, type XY } from "./util/xy";
 
@@ -29,17 +30,31 @@ export class WalkAction extends Action {
     }
 
     public getAnimation(state: State): null | ActionAnimation {
-        const sprite = state.sprites.getSpriteByName("player");
-        return sprite ? walkAnimation(this.direction[0], this.direction[1], sprite) : null;
+        const entity = state.entities.getEntityByName("player");
+        return entity ? walkAnimation(this.direction[0], this.direction[1], entity) : null;
     }
 }
 
 class EndAction extends Action {
-    constructor(){
+    constructor() {
         super("Next Level");
     }
     public onClick(state: State): void {
         state.triggerNewLevel = true;
+    }
+}
+
+export class CollectAction extends Action {
+    public constructor(
+        private readonly itemName: string,
+        private readonly targetEntity: Entity,
+    ) {
+        super(`Collect ${itemName}`);
+    }
+
+    public onClick(state: State): void {
+        state.inventory.push(this.itemName);
+        this.targetEntity.die();
     }
 }
 
@@ -49,10 +64,11 @@ export class OpenDoorAction extends Action {
     }
 
     public onClick(state: State): void {
-        const sprite = state.sprites.getSpriteByName("player");
-        if (sprite) {
-            const tile = state.maze.get(sprite.tile[0] + this.direction[0], sprite.tile[1] + this.direction[1]);
-            if (tile && tile.items && /*"closed" ==*/ tile.items.door) {
+        const playerEntity = state.entities.getEntityByName("player");
+        if (playerEntity) {
+            const playerTile = playerEntity.getTile();
+            const tile = state.maze.get(playerTile[0] + this.direction[0], playerTile[1] + this.direction[1]);
+            if (tile?.items?.door) {
                 // TODO handle locked doors
                 tile.solid = false;
                 tile.items.door = "open";
@@ -61,17 +77,31 @@ export class OpenDoorAction extends Action {
     }
 }
 
-function walkAnimation(dx: number, dy: number, sprite: Sprite): ActionAnimation {
+function walkAnimation(dx: number, dy: number, entity: Entity): ActionAnimation {
     let progress = 0;
     return (delta: number) => {
         progress += delta / 300;
-        sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2 + Math.floor(progress * 18) * dx;
-        sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2 + Math.floor(progress * 18) * dy;
+        const sprite = entity.getSprite();
+        if (!sprite) return false;
+
+        // Calculate current world position based on tile and sprite offset
+        // const currentTile = entity.getTile();
+        // const currentWorldX = 2 + ((currentTile[0] - 1) * 18) / 2;
+        // const currentWorldY = 6 + ((currentTile[1] - 1) * 18) / 2;
+
+        // Update sprite offset during animation
+        sprite.offset[0] = Math.floor(progress * 18) * dx; // TODO this magic number is W_LARGE + W_SMALL (or the H_ equivalent)
+        sprite.offset[1] = Math.floor(progress * 18) * dy;
+
         if (progress >= 1) {
-            sprite.tile[0] += dx * 2;
-            sprite.tile[1] += dy * 2;
-            sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
-            sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
+            // Update entity tile position
+            entity["tile"][0] += dx * 2;
+            entity["tile"][1] += dy * 2;
+
+            // Reset sprite offset
+            sprite.offset[0] = 0;
+            sprite.offset[1] = 0;
+
             return true;
         }
         return false;
@@ -86,35 +116,34 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
         [dx, dy],
         [2 * dx, 2 * dy],
     ];
-    const coords = state.sprites.getSpriteByName("player")!.tile;
+    const playerEntity = state.entities.getEntityByName("player");
+    if (!playerEntity) return null;
+
+    const coords = playerEntity.getTile() as XY;
     const result = state.maze.getKernel(coords, kernel);
 
-    // check sprites
-    if(result[0] && !result[0].solid){
-        const s = state.sprites.getSpritesByXY(addXY(coords, kernel[1]));
-        if(s.length > 0){
-            const end = s.filter(a=>a.type === "end");
-            if(end){
-                return new EndAction(); 
+    // check entities
+    if (result[0] && !result[0].solid) {
+        const targetPosition = addXY(coords, kernel[1]);
+        const targetEntity = state.entities.getEntityByXY(targetPosition)[0];
+        if (targetEntity) {
+            const action = targetEntity.getAction(state);
+            if (action) {
+                return action;
             }
         }
     }
 
     if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
         return new WalkAction([dx, dy] as ActionDirection);
-    } else if (
-        result[0] &&
-        result[0].items &&
-        result[1] &&
-        !result[1].solid
-    ) {
-        if ("closed" == result[0].items.door) {
+    } else if (result[0]?.items && result[1] && !result[1].solid) {
+        if ("closed" === result[0].items.door) {
             return new OpenDoorAction([dx, dy] as ActionDirection);
-        } else if ("locked" == result[0].items.door) {
+        } else if ("locked" === result[0].items.door) {
             // TODO requires key
             return new OpenDoorAction([dx, dy] as ActionDirection);
         }
-    } 
+    }
     return null;
 }
 

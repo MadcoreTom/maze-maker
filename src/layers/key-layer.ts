@@ -1,8 +1,7 @@
-import { PathRenderer } from "../render/render-progress";
 import { PixelRenderer } from "../render/renderer-pixel";
 import type { State } from "../state";
 import type { ReturnsGenerator } from "../types";
-import { calcDistance, MAX_DIST } from "../util/distance";
+import { calcDistance } from "../util/distance";
 import type { XY } from "../util/xy";
 import { LayerLogic } from "./layer";
 

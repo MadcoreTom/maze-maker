@@ -1,4 +1,5 @@
 import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
+import { KeyEntity, PlayerEntity } from "./entities/entity";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
@@ -175,7 +176,7 @@ export class GameComponent extends HTMLElement {
         this.state.actions = calculateAllActions(this.state);
 
         // TODO move this to its own place
-        calcVisibility(this.state, this.state.sprites.getSpriteByName("player")!.tile, 4, Date.now());
+        calcVisibility(this.state, this.state.entities.getEntityByName("player")!.getTile(), 4, Date.now());
     }
 
     private updateButtons() {
@@ -205,7 +206,6 @@ export class GameComponent extends HTMLElement {
             this.curLayer!.init(createInitialState());
             this.curGenerator = this.curLayer!.apply()();
         }
-
 
         if (this.ctx && this.state) {
             this.renderer.render(this.ctx, this.state);
@@ -248,38 +248,44 @@ export class GameComponent extends HTMLElement {
             if (!this.curGenerator && this.state) {
                 // last generator step
                 const pos: XY = this.state.start || [1, 1];
-                const sprite: Sprite = {
-                    position: [0, 0],
-                    tile: pos,
-                    sprite: { left: 0, top: 0, width: 16, height: 12 },
-                    type: "player"
-                };
-                this.state.sprites.addSprite("player", sprite);
-                sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
-                sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
+                // const sprite: Sprite = {
+                //     position: [0, 0],
+                //     tile: pos,
+                //     sprite: { left: 0, top: 0, width: 16, height: 12 },
+                //     type: "player",
+                // };
+                // this.state.sprites.addSprite("player", sprite);
+                // sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
+                // sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
 
-                this.state.end && this.state.sprites.addSprite("end", {
-                    position: [2 + ((this.state.end[0] - 1) * 18) / 2, 6 + ((this.state.end[1] - 1) * 18) / 2],
-                    sprite: "end",
-                    tile: cloneXY(this.state.end),
-                    type: "end"
-                });
-                
-                this.state.start && this.state.sprites.addSprite("end", {
-                    position: [2 + ((this.state.start[0] - 1) * 18) / 2, 6 + ((this.state.start[1] - 1) * 18) / 2],
-                    sprite: "start",
-                    tile: cloneXY(this.state.start),
-                    type: "start"
-                })
-                    
+
+                this.state.entities.addEntity("player", new PlayerEntity(pos, this.state!), this.state!);
+
+                /*
+                this.state.end &&
+                    this.state.sprites.addSprite("end", {
+                        position: [2 + ((this.state.end[0] - 1) * 18) / 2, 6 + ((this.state.end[1] - 1) * 18) / 2],
+                        sprite: "end",
+                        tile: cloneXY(this.state.end),
+                        type: "end",
+                    });
+
+                this.state.start &&
+                    this.state.sprites.addSprite("start", {
+                        position: [2 + ((this.state.start[0] - 1) * 18) / 2, 6 + ((this.state.start[1] - 1) * 18) / 2],
+                        sprite: "start",
+                        tile: cloneXY(this.state.start),
+                        type: "start",
+                    });
+*/
+                // Find the tile with the "key" item and add an entity
                 this.state.maze.forEach((x, y, t) => {
                     if (t.items && t.items.key) {
-                        this.state!.sprites.addSprite("end", {
-                            position: [2 + ((x - 1) * 18) / 2, 6 + ((y - 1) * 18) / 2],
-                            sprite: "key",
-                            tile: [x,y],
-                            type: "key"
-                        });
+
+                        const e = new KeyEntity([x, y], this.state!);
+                        this.state!.entities.addEntity("key",e, this.state!);
+                        
+                        t.entity = e;
                     }
                 });
 

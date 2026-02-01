@@ -1,6 +1,6 @@
 import type { State, Tile } from "../state";
 import type { Array2 } from "./array2";
-import { addXY, type XY } from "./xy";
+import { addXY, XYReadOnly, type XY } from "./xy";
 
 export const KERNEL_UDLR: XY[] = [
     [-1, 0],
@@ -44,12 +44,12 @@ export function* calcDistance(
 /**
  * Calculates all reachable tiles <= distance, and sets the timestamp
  */
-export function calcVisibility(state: State, start: XY, distance: number, timestamp: number) {
+export function calcVisibility(state: State, start: XYReadOnly, distance: number, timestamp: number) {
     const startTile = state.maze.get(start[0], start[1]) as Tile;
     startTile.visDistance = 0;
     startTile.visTimestamp = timestamp;
     let tempVisCount = 0;
-    const queue: XY[] = [start];
+    const queue: XYReadOnly[] = [start];
     const inRange: XY[] = [];
     while (queue.length > 0) {
         const cur = queue.shift() as XY;

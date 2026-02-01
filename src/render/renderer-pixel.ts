@@ -135,10 +135,15 @@ export class PixelRenderer implements Renderer {
         ctx.fillRect(0, 0, 600, 600);
 
         const offset: XY = [0, 0];
-        const player = state.sprites.getSpriteByName("player");
+        const player = state.entities.getEntityByName("player");
         if (player && state.viewportSize) {
-            offset[0] = Math.floor((state.viewportSize[0] - W_LARGE) / 2) - player.position[0];
-            offset[1] = Math.floor((state.viewportSize[1] - H_LARGE) / 2) - player.position[1]; // TODO center this properly
+            const s = player.getSprite()!;
+            const [x,y] = player.getTile();
+                     
+                     
+            offset[0] = Math.floor((state.viewportSize[0] - W_LARGE) / 2) - (Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0]); // TODO this should a include the sprite offset of the player
+            offset[1] = Math.floor((state.viewportSize[1] - H_LARGE) / 2) - (Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1]); // TODO center this properly
+            
         }
 
         state.maze.forEach((x, y, t) => {
@@ -175,17 +180,27 @@ export class PixelRenderer implements Renderer {
         });
 
         // sprites
-        state.sprites.forEachSprite(s => {
-            const t = state.maze.get(s.tile[0],s.tile[1]);
+        state.entities.forEachEntity(e => {
+            const t = state.maze.get(e.getTile()[0],e.getTile()[1]);
             if(!t || t.visTimestamp != state.visTimestamp){
                 // only render if not shaded
                 return;
             }
-            if (typeof s.sprite === "string") {
-                sprites.draw(ctx, addXY(s.position, offset), s.sprite as any);
-            }
-            else {
-                sprites.drawRegion(ctx, addXY(s.position, offset), s.sprite);
+            // TODO handle sprite offsets
+            // TODO handle child sprites eventually
+            const s = e.getSprite();
+            const [x,y] = e.getTile();
+            if (s) {
+                const pos: XY = [
+                     Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0],
+                     Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1],
+                ];
+                if (typeof s.sprite === "string") {
+                    sprites.draw(ctx, addXY(pos, offset), s.sprite as any);
+                }
+                else {
+                    sprites.drawRegion(ctx, addXY(pos, offset), s.sprite as Rect);
+                }
             }
         });
     }

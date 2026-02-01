@@ -139,7 +139,6 @@ export class LayerComponent extends HTMLElement {
                     this.style.border = "4px solid limegreen";
                     this.regen.disabled = false;
                     break;
-                case "todo":
                 default:
                     this.style.border = "4px dotted yellow";
                     this.regen.disabled = true;
