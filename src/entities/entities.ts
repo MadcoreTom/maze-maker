@@ -22,11 +22,6 @@ export class Entities {
         return this.entityMap[name];
     }
 
-    public getEntityByXY(xy: XY): Entity[] {
-        // TODO redundant as you can get it from the maze
-        return this.entityList.filter(e => equalsXY(xy, e.getTile()));
-    }
-
     public removeEntityByName(name: string, state: State): boolean {
         const entity = this.entityMap[name];
         if (entity) {
@@ -34,6 +29,7 @@ export class Entities {
             const tile = entity.getTile();
             const t = state.maze.get(tile[0], tile[1]);
             if (t && t.entity === entity) {
+                console.log("Removed entity of type ", typeof entity, "from", tile, t)
                 t.entity = undefined;
             }
 
@@ -61,5 +57,10 @@ export class Entities {
         this.entityList.forEach(callback);
     }
 
-    // TODO check for dead
+    public removeDeadEntities(state: State): void {
+        const deadEntities = this.entityList.filter(e => e.isDead());
+        deadEntities.forEach(entity => {
+            this.removeEntity(entity, state);
+        });
+    }
 }

@@ -3,8 +3,9 @@
 ## Bugs
 
 - [x] the action for "end" and "start" sprites show the EndAction instead of nothing
+- [ ] actions are calculated before removing dead entities, so you can collect the same item twice
 
-## Entity System Migration - ~95% Complete
+## Entity System Migration - ~98% Complete
 
 ### ✅ **Completed Core Infrastructure:**
 - [x] Created abstract Entity class with tile position, sprite offset, and lifecycle management
@@ -25,42 +26,26 @@
 
 ### 🔴 **Remaining Critical Issues:**
 
-#### **Animation System - Partial Working**
+#### ✅ **Animation System - Fixed**
 **Issue**: Entity movement animation doesn't properly manage tile references
-**Location**: `src/action.ts` walkAnimation function (lines 96-100)
+**Location**: `src/action.ts` walkAnimation function (lines 98-102)
 **Current Behavior**: 
-- Updates `entity["tile"]` position directly
+- Updates entity tile position using `entity.setTile()` method
 - Updates sprite offset correctly during animation
-- **Problem**: Old tile's entity reference isn't cleared, new tile's reference isn't set
-**Fix Needed**:
-```typescript
-// After position update in walkAnimation:
-const oldTile = state.maze.get(entity.getTile()[0] - dx * 2, entity.getTile()[1] - dy * 2);
-const newTile = state.maze.get(entity.getTile()[0], entity.getTile()[1]);
-if (oldTile?.entity === entity) oldTile.entity = undefined;
-if (newTile) newTile.entity = entity;
-```
+- **✅ Fixed**: Properly manages tile references through setTile implementation
 
-#### **Entity Lifecycle Management - Missing**
-**Issue**: Dead entities aren't cleaned up from the system
-**Location**: `src/entities/entities.ts` - missing cleanup method
-**Problem**: `entity.die()` only marks entity as dead, but doesn't remove it from entity lists/maps
-**Fix Needed**: Add cleanup method and call it during game loop:
-```typescript
-public cleanupDeadEntities(state: State): void {
-    const deadEntities = this.entityList.filter(e => e.isDead());
-    deadEntities.forEach(entity => {
-        this.removeEntity(entity, state);
-    });
-}
-```
-**Call location**: In game-component tick method, after entity updates
+#### ✅ **Entity Lifecycle Management - Fixed**
+**Issue**: Dead entities weren't cleaned up from the system
+**Location**: `src/entities/entities.ts` and `src/game-component.ts`
+**✅ Fixed**: 
+- Added `removeDeadEntities(state: State)` method to Entities class
+- Called it in the game loop within the tick method
+- Dead entities are now properly removed from both the entity list and map
 
-#### **Code Quality Issues**
-**Issue 1**: Type assertion abuse still exists
-**Location**: `src/action.ts` line 98-99
-**Problem**: `entity["tile"]` bypasses type system for tile updates
-**Fix Needed**: Add proper entity tile update method to Entity class
+#### ✅ **Code Quality Issue 1 - Fixed**
+**Issue 1**: Type assertion abuse has been resolved
+**Location**: `src/action.ts` walkAnimation function now uses `entity.setTile()`
+**✅ Fixed**: Added proper entity tile update method to Entity class and updated animation to use it
 
 **Issue 2**: Redundant entity-tile relationship
 **Location**: `src/entities/entities.ts` line 26
@@ -68,8 +53,8 @@ public cleanupDeadEntities(state: State): void {
 **Fix Needed**: Remove method and update callers to use tile entity reference
 
 ### 📝 **Housekeeping Tasks**
-- [ ] Remove commented old sprite code in game-component.ts (lines 266-280)
-- [ ] Add proper entity tile update method to Entity class to avoid type assertions
+- [x] Remove commented old sprite code in game-component.ts (lines 266-280)
+- [x] Add proper entity tile update method to Entity class to avoid type assertions
 - [ ] Remove redundant `getEntityByXY` method in Entities class
 
 ## Feature Tasks
@@ -87,7 +72,7 @@ public cleanupDeadEntities(state: State): void {
 
 ### Low Priority  
 - [x] Implement proper entity position updating when entities move between tiles
-  - **Status**: Rendering system properly handles offsets, only tile reference management needed
+  - **✅ Status**: Both rendering system and animation properly handle tile reference management
 
 ## Architecture Ideas for Future Implementation
 
@@ -124,9 +109,10 @@ public cleanupDeadEntities(state: State): void {
 
 ## Migration Completion Checklist
 
-- [ ] Animation tile reference management
-- [ ] Dead entity cleanup system
-- [ ] Code quality improvements (remove type assertions, remove redundant methods)
-- [ ] Remove commented legacy code
+- [x] Animation tile reference management
+- [x] Dead entity cleanup system
+- [x] Code quality improvements (remove type assertions)
+- [x] Remove commented legacy code
 - [ ] Complete feature implementation (EndAction inventory check)
+- [ ] Remove redundant `getEntityByXY` method in Entities class
 - [ ] Testing and validation of all entity interactions

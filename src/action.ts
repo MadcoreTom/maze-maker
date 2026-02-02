@@ -2,7 +2,7 @@ import { Entity } from "./entities/entity";
 import type { Sprite, State } from "./state";
 import { addXY, type XY } from "./util/xy";
 
-export type ActionAnimation = (delta: number) => boolean;
+export type ActionAnimation = (delta: number, state: State) => boolean;
 
 export type ActionDirection = [-1, 0] | [1, 0] | [0, -1] | [0, 1];
 
@@ -53,7 +53,9 @@ export class CollectAction extends Action {
     }
 
     public onClick(state: State): void {
+        console.log("Collect", this.itemName);
         state.inventory.push(this.itemName);
+        console.log("Inventory", state.inventory);
         this.targetEntity.die();
     }
 }
@@ -79,7 +81,7 @@ export class OpenDoorAction extends Action {
 
 function walkAnimation(dx: number, dy: number, entity: Entity): ActionAnimation {
     let progress = 0;
-    return (delta: number) => {
+    return (delta: number, state:State) => {
         progress += delta / 300;
         const sprite = entity.getSprite();
         if (!sprite) return false;
@@ -95,9 +97,11 @@ function walkAnimation(dx: number, dy: number, entity: Entity): ActionAnimation 
 
         if (progress >= 1) {
             // Update entity tile position
-            entity["tile"][0] += dx * 2;
-            entity["tile"][1] += dy * 2;
-
+            const t = entity.getTile();
+            entity.setTile([
+                t[0] + dx * 2,
+                t[1] + dy * 2
+            ], state)
             // Reset sprite offset
             sprite.offset[0] = 0;
             sprite.offset[1] = 0;
@@ -125,7 +129,7 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
     // check entities
     if (result[0] && !result[0].solid) {
         const targetPosition = addXY(coords, kernel[1]);
-        const targetEntity = state.entities.getEntityByXY(targetPosition)[0];
+        const targetEntity = state.maze.get(targetPosition[0], targetPosition[1])?.entity;
         if (targetEntity) {
             const action = targetEntity.getAction(state);
             if (action) {

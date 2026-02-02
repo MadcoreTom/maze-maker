@@ -44,60 +44,7 @@ export type Items = {
     key?: true;
     door?: "locked" | "open" | "closed";
 };
-/*
-export class Entities {
-    private entityMap: { [name: string]: Entity } = {};
-    private entityList: Entity[] = [];
-    public addEntity(name: string, entity: Entity, state: State) {
-        this.entityMap[name] = entity;
-        // TODO check for name collisions
-        // TODO kill entities already in this position
-        this.entityList.push(entity);
-        const t = state.maze.get(entity.getTile()[0], entity.getTile()[1]);
-        if (t) {
-            t.entity = entity;
-        } else {
-            console.warn("Entity added off the edge of the map", entity.getTile());
-        }
-    }
-    public getEntityByName(name: string): Entity | undefined {
-        return this.entityMap[name];
-    }
-    public getEntityByXY(xy: XY): Entity[] {
-        // TODO redundant as you can get it from the maze
-        return this.entityList.filter(e => equalsXY(xy, e.getTile()));
-    }
 
-    public removeSpriteByName(name: string): boolean {
-        const sprite = this.entityMap[name];
-        if (sprite) {
-            delete this.entityMap[name];
-            const index = this.entityList.indexOf(sprite);
-            if (index > -1) {
-                this.entityList.splice(index, 1);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public removeEntity(entity: Entity): boolean {
-        // Find the name for this sprite in the map
-        for (const [name, e] of Object.entries(this.entityMap)) {
-            if (e === entity) {
-                return this.removeSpriteByName(name);
-            }
-        }
-        return false;
-    }
-
-    public forEachSprite(callback: (entity: Entity) => unknown): void {
-        this.entityList.forEach(callback);
-    }
-
-    // TODO check for dead
-}
-*/
 export type Sprite = {
     offset: XY;
     sprite: Rect | string;
