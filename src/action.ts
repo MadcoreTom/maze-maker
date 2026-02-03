@@ -35,7 +35,7 @@ export class WalkAction extends Action {
     }
 }
 
-class EndAction extends Action {
+export class EndAction extends Action {
     constructor() {
         super("Next Level");
     }
@@ -78,6 +78,7 @@ export class OpenDoorAction extends Action {
         }
     }
 }
+
 
 function walkAnimation(dx: number, dy: number, entity: Entity): ActionAnimation {
     let progress = 0;

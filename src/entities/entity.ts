@@ -1,4 +1,4 @@
-import { Action, CollectAction } from "../action";
+import { Action, CollectAction, EndAction } from "../action";
 import { Sprite, State } from "../state";
 import { cloneXY, equalsXY, Rect, XY, XYReadOnly } from "../util/xy";
 
@@ -49,7 +49,7 @@ export abstract class Entity {
         return undefined;
     }
 
-    public onFrame(state: State) {}
+    public onFrame(state: State) { }
 
     public isDead(): boolean {
         return this.dead;
@@ -93,5 +93,19 @@ export class StaticEntity extends Entity {
             offset: [0, 0],
             sprite: sprite,
         };
+    }
+}
+
+
+export class EndEntity extends Entity {
+    constructor(tile: XY, state: State) {
+        super(tile, state);
+        this.sprite = {
+            offset: [0, 0],
+            sprite: "end",
+        };
+    }
+    public getAction(state: State): Action | undefined {
+        return new EndAction();
     }
 }

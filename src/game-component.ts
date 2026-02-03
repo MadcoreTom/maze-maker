@@ -1,5 +1,5 @@
 import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
-import { KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
+import { EndEntity, KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
@@ -43,6 +43,8 @@ export class GameComponent extends HTMLElement {
 
     connectedCallback() {
         console.log("connected");
+        L1.params.filter(p=>p.name == "Width").forEach(p=>p.value = 15);
+        L1.params.filter(p=>p.name == "Height").forEach(p=>p.value = 15);
 
         this.elements = {
             canvas: this.querySelector("canvas") as HTMLCanvasElement,
@@ -173,12 +175,12 @@ export class GameComponent extends HTMLElement {
         if (!this.state) {
             return;
         }
+        this.state.entities.removeDeadEntities(this.state);
         this.state.actions = calculateAllActions(this.state);
 
         // TODO move this to its own place
         calcVisibility(this.state, this.state.entities.getEntityByName("player")!.getTile(), 4, Date.now());
 
-        this.state.entities.removeDeadEntities(this.state);
     }
 
     private updateButtons() {
@@ -275,7 +277,11 @@ export class GameComponent extends HTMLElement {
                     });
 */
                 this.state.start &&
-                    this.state.entities.addEntity("start", new StaticEntity(pos, this.state!, "start"), this.state!);
+                    this.state.entities.addEntity("start", new StaticEntity(this.state.start, this.state!, "start"), this.state!);
+
+
+                this.state.end &&
+                this.state.entities.addEntity("end", new EndEntity(this.state.end, this.state!), this.state!);
 
                 // this.state.sprites.addSprite("start", {
                 //     position: [2 + ((this.state.start[0] - 1) * 18) / 2, 6 + ((this.state.start[1] - 1) * 18) / 2],
