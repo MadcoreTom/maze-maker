@@ -1,5 +1,5 @@
 import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
-import { EndEntity, KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
+import { EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { PixelRenderer } from "./render/renderer-pixel";
@@ -131,8 +131,6 @@ export class GameComponent extends HTMLElement {
     }
 
     private keyDown(code: string) {
-        console.log("Key", code, KEY_MAP[code], KEY_MAP[code] ? Control[KEY_MAP[code]] : "?");
-        console.log(this.state?.actions);
         const control = KEY_MAP[code];
         let action: Action | null = null;
         if (control !== undefined && this.state) {
@@ -228,9 +226,16 @@ export class GameComponent extends HTMLElement {
                 const finished = this.state.animation(delta, this.state);
                 if (finished) {
                     this.state.animation = null;
+
+                    // TODO process this in a different phase of animation
+                    // TOOD only process discovered ones
+                    this.state.entities.forEachEntity(e=>{
+                        e.onFrame(this.state!);
+                    })
                     // TODO calculate next available actions (unless its time for sprites to take turns?)
                     this.updateActions();
                     this.updateButtons();
+
                 }
             }
         }
@@ -289,6 +294,12 @@ export class GameComponent extends HTMLElement {
                 //     tile: cloneXY(this.state.start),
                 //     type: "start",
                 // });
+
+                this.state.maze.forEach((x,y,t)=>{
+                    if(x%2==1 && y%2==1 && !t.solid && !t.entity && Math.random() > 0.85){
+                        this.state?.entities.addEntity("enemy"+x+","+y,new FollowerEntity([x,y], this.state!),this.state);
+                    }
+                })
 
                 // Find the tile with the "key" item and add an entity
                 this.state.maze.forEach((x, y, t) => {

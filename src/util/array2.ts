@@ -1,4 +1,4 @@
-import { addXY, type Rect, type XY } from "./xy";
+import { addXY, XYReadOnly, type Rect, type XY } from "./xy";
 
 export class Array2<T> {
     private data: T[] = [];
@@ -70,7 +70,7 @@ export class Array2<T> {
         }
     }
 
-    public getKernel(centre: XY, offset: XY[]): (T | undefined)[] {
+    public getKernel(centre: XYReadOnly, offset: XY[]): (T | undefined)[] {
         return offset.map(o => addXY(centre, o)).map(([x, y]) => this.get(x, y));
     }
 }
