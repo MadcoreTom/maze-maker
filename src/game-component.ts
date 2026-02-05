@@ -1,4 +1,5 @@
 import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
+import { ActionAnimation, createParallelAnimation } from "./animation";
 import { EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
@@ -229,9 +230,16 @@ export class GameComponent extends HTMLElement {
 
                     // TODO process this in a different phase of animation
                     // TOOD only process discovered ones
-                    this.state.entities.forEachEntity(e=>{
-                        e.onFrame(this.state!);
-                    })
+                    let animations: ActionAnimation[] = [];
+                    this.state.entities.forEachEntity(e => {
+                        const a = e.onTurn(this.state!);
+                        if (a) {
+                            animations.push(a);
+                        }
+                    });
+                    if (animations.length > 0) {
+                        this.state.animation = createParallelAnimation(animations)
+                    }
                     // TODO calculate next available actions (unless its time for sprites to take turns?)
                     this.updateActions();
                     this.updateButtons();

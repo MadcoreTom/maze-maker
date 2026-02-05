@@ -1,4 +1,5 @@
 import { Action, CollectAction, EndAction } from "../action";
+import { ActionAnimation } from "../animation";
 import { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
 import { addXY, cloneXY, equalsXY, Rect, XY, XYReadOnly } from "../util/xy";
@@ -50,7 +51,7 @@ export abstract class Entity {
         return undefined;
     }
 
-    public onFrame(state: State) { }
+    public onTurn(state: State): ActionAnimation | undefined  { return undefined;}
 
     public isDead(): boolean {
         return this.dead;
@@ -133,7 +134,7 @@ export class FollowerEntity extends Entity {
             ? tiles[1].visDistance : null
     }
 
-    public onFrame(state: State): void {
+    public onTurn(state: State): ActionAnimation | undefined {
         const t = this.getTile();
         const results = state.maze.getKernel(t, KERNEL_UDLR2);
 
@@ -153,5 +154,7 @@ export class FollowerEntity extends Entity {
             console.log("move",option)
             this.setTile(addXY(option.dir, t), state);
         }
+
+        return undefined;
     }
 }

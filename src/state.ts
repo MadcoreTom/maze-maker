@@ -1,4 +1,5 @@
-import { type Action, type ActionAnimation, WalkAction } from "./action";
+import { type Action } from "./action";
+import { ActionAnimation } from "./animation";
 import { Entities } from "./entities/entities";
 import type { Entity } from "./entities/entity";
 import { Array2 } from "./util/array2";
