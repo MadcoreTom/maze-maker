@@ -44,8 +44,8 @@ export class GameComponent extends HTMLElement {
 
     connectedCallback() {
         console.log("connected");
-        L1.params.filter(p=>p.name == "Width").forEach(p=>p.value = 15);
-        L1.params.filter(p=>p.name == "Height").forEach(p=>p.value = 15);
+        L1.params.filter(p => p.name == "Width").forEach(p => p.value = 15);
+        L1.params.filter(p => p.name == "Height").forEach(p => p.value = 15);
 
         this.elements = {
             canvas: this.querySelector("canvas") as HTMLCanvasElement,
@@ -132,6 +132,9 @@ export class GameComponent extends HTMLElement {
     }
 
     private keyDown(code: string) {
+        if (this.state && this.state.phase != "READY") {
+            return;
+        }
         const control = KEY_MAP[code];
         let action: Action | null = null;
         if (control !== undefined && this.state) {
@@ -163,10 +166,38 @@ export class GameComponent extends HTMLElement {
             };
             // disable all buttons while animating
             if (this.state.animation == null) {
-                this.updateActions();
+                // this.updateActions();
+                this.startWorldAnim();
+            } else {
+                this.state.phase = "PLAYER_ANIM";
             }
             this.updateButtons();
         }
+    }
+
+    private startWorldAnim() {
+        if (!this.state) {
+            return;
+        }
+        // TODO process this in a different phase of animation
+        // TOOD only process discovered ones
+        let animations: ActionAnimation[] = [];
+        this.state.entities.forEachEntity(e => {
+            const a = e.onTurn(this.state!);
+            if (a) {
+                animations.push(a);
+            }
+        });
+        if (animations.length > 0) {
+            console.log("animations", animations.length)
+            this.state.animation = createParallelAnimation(animations);
+            this.state.phase = "WORLD_ANIM";
+        } else {
+            this.state.phase = "READY";
+        }
+        // TODO calculate next available actions (unless its time for sprites to take turns?)
+        this.updateActions();
+        this.updateButtons();
     }
 
     // TODO this just has null check and calls another function. it cam be improved to be called from places where its already know not to be null
@@ -228,21 +259,13 @@ export class GameComponent extends HTMLElement {
                 if (finished) {
                     this.state.animation = null;
 
-                    // TODO process this in a different phase of animation
-                    // TOOD only process discovered ones
-                    let animations: ActionAnimation[] = [];
-                    this.state.entities.forEachEntity(e => {
-                        const a = e.onTurn(this.state!);
-                        if (a) {
-                            animations.push(a);
-                        }
-                    });
-                    if (animations.length > 0) {
-                        this.state.animation = createParallelAnimation(animations)
+
+                    if (this.state.phase == "PLAYER_ANIM") {
+                        this.startWorldAnim();
+
+                    } else {
+                        this.state.phase = "READY";
                     }
-                    // TODO calculate next available actions (unless its time for sprites to take turns?)
-                    this.updateActions();
-                    this.updateButtons();
 
                 }
             }
@@ -266,46 +289,19 @@ export class GameComponent extends HTMLElement {
                 }
             }
             if (!this.curGenerator && this.state) {
+                // TODO make a function called "place entities" or something
                 // last generator step
                 const pos: XY = this.state.start || [1, 1];
-                // const sprite: Sprite = {
-                //     position: [0, 0],
-                //     tile: pos,
-                //     sprite: { left: 0, top: 0, width: 16, height: 12 },
-                //     type: "player",
-                // };
-                // this.state.sprites.addSprite("player", sprite);
-                // sprite.position[0] = 2 + ((sprite.tile[0] - 1) * 18) / 2;
-                // sprite.position[1] = 6 + ((sprite.tile[1] - 1) * 18) / 2;
 
                 this.state.entities.addEntity("player", new PlayerEntity(pos, this.state!), this.state!);
-
-                /*
-                this.state.end &&
-                    this.state.sprites.addSprite("end", {
-                        position: [2 + ((this.state.end[0] - 1) * 18) / 2, 6 + ((this.state.end[1] - 1) * 18) / 2],
-                        sprite: "end",
-                        tile: cloneXY(this.state.end),
-                        type: "end",
-                    });
-*/
                 this.state.start &&
                     this.state.entities.addEntity("start", new StaticEntity(this.state.start, this.state!, "start"), this.state!);
-
-
                 this.state.end &&
-                this.state.entities.addEntity("end", new EndEntity(this.state.end, this.state!), this.state!);
+                    this.state.entities.addEntity("end", new EndEntity(this.state.end, this.state!), this.state!);
 
-                // this.state.sprites.addSprite("start", {
-                //     position: [2 + ((this.state.start[0] - 1) * 18) / 2, 6 + ((this.state.start[1] - 1) * 18) / 2],
-                //     sprite: "start",
-                //     tile: cloneXY(this.state.start),
-                //     type: "start",
-                // });
-
-                this.state.maze.forEach((x,y,t)=>{
-                    if(x%2==1 && y%2==1 && !t.solid && !t.entity && Math.random() > 0.85){
-                        this.state?.entities.addEntity("enemy"+x+","+y,new FollowerEntity([x,y], this.state!),this.state);
+                this.state.maze.forEach((x, y, t) => {
+                    if (x % 2 == 1 && y % 2 == 1 && !t.solid && !t.entity && Math.random() > 0.85) {
+                        this.state?.entities.addEntity("enemy" + x + "," + y, new FollowerEntity([x, y], this.state!), this.state);
                     }
                 })
 
@@ -322,6 +318,12 @@ export class GameComponent extends HTMLElement {
                 this.updateActions();
                 this.updateButtons();
             }
+        }
+
+        if (this.ctx && this.state) {
+            this.ctx.fillStyle = "cyan";
+            this.ctx.fillText(this.state.phase, 10, 10);
+
         }
 
         this.lastFrameTime = time;

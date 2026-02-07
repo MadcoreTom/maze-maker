@@ -1,5 +1,5 @@
 import { Action, CollectAction, EndAction } from "../action";
-import { ActionAnimation } from "../animation";
+import { ActionAnimation, walkAnimation } from "../animation";
 import { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
 import { addXY, cloneXY, equalsXY, Rect, XY, XYReadOnly } from "../util/xy";
@@ -150,9 +150,20 @@ export class FollowerEntity extends Entity {
             {dist: rt, dir: KERNEL_UDLR2[7]}
         ].filter(x=>x.dist != null).sort((a,b)=>a.dist! - b.dist!)[0]; // TODO not sure if this is sorting in the right direction
 
-        if(option){
-            console.log("move",option)
-            this.setTile(addXY(option.dir, t), state);
+        if (option) {
+            if (option.dir[0] < 0) {
+                return walkAnimation(-1, 0, this);
+            }
+            if (option.dir[0] > 0) {
+                return walkAnimation(1, 0, this);
+            }
+            if (option.dir[1] < 0) {
+                return walkAnimation(0, -1, this);
+            }
+            if (option.dir[1] > 0) {
+                return walkAnimation(0, 1, this);
+            }
+
         }
 
         return undefined;
