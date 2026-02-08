@@ -1,6 +1,6 @@
 import type { State, Tile } from "../state";
 import type { Array2 } from "./array2";
-import { addXY, XYReadOnly, type XY } from "./xy";
+import { addXY, type XY, type XYReadOnly } from "./xy";
 
 export const KERNEL_UDLR: XY[] = [
     [-1, 0],

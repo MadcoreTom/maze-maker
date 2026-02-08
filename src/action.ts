@@ -1,8 +1,7 @@
-import { ActionAnimation, walkAnimation } from "./animation";
-import { Entity } from "./entities/entity";
+import { type ActionAnimation, walkAnimation } from "./animation";
+import type { Entity } from "./entities/entity";
 import type { Sprite, State } from "./state";
 import { addXY, type XY } from "./util/xy";
-
 
 export type ActionDirection = [-1, 0] | [1, 0] | [0, -1] | [0, 1];
 

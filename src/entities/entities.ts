@@ -29,7 +29,7 @@ export class Entities {
             const tile = entity.getTile();
             const t = state.maze.get(tile[0], tile[1]);
             if (t && t.entity === entity) {
-                console.log("Removed entity of type ", typeof entity, "from", tile, t)
+                console.log("Removed entity of type ", typeof entity, "from", tile, t);
                 t.entity = undefined;
             }
 

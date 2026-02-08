@@ -4,8 +4,8 @@ export type XYReadOnly = readonly [number, number];
 export function addXY(a: XYReadOnly, b: XYReadOnly): XY {
     return [a[0] + b[0], a[1] + b[1]];
 }
-export function scaleXY(a: XYReadOnly, scale:number): XY {
-    return [a[0] *scale, a[1] *scale];
+export function scaleXY(a: XYReadOnly, scale: number): XY {
+    return [a[0] * scale, a[1] * scale];
 }
 
 export function equalsXY(a: XYReadOnly, b: XYReadOnly): boolean {

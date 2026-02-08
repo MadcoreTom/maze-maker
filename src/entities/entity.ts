@@ -1,8 +1,8 @@
-import { Action, CollectAction, EndAction } from "../action";
-import { ActionAnimation, walkAnimation } from "../animation";
-import { Sprite, State, Tile } from "../state";
+import { type Action, CollectAction, EndAction } from "../action";
+import { type ActionAnimation, walkAnimation } from "../animation";
+import type { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
-import { addXY, cloneXY, equalsXY, Rect, XY, XYReadOnly } from "../util/xy";
+import { addXY, cloneXY, equalsXY, type Rect, type XY, type XYReadOnly } from "../util/xy";
 
 export abstract class Entity {
     private tile: XY;
@@ -51,7 +51,9 @@ export abstract class Entity {
         return undefined;
     }
 
-    public onTurn(state: State): ActionAnimation | undefined  { return undefined;}
+    public onTurn(state: State): ActionAnimation | undefined {
+        return undefined;
+    }
 
     public isDead(): boolean {
         return this.dead;
@@ -98,7 +100,6 @@ export class StaticEntity extends Entity {
     }
 }
 
-
 export class EndEntity extends Entity {
     constructor(tile: XY, state: State) {
         super(tile, state);
@@ -112,12 +113,16 @@ export class EndEntity extends Entity {
     }
 }
 
-const KERNEL_UDLR2:XY[] = [
-    [0,-1],[0,-2],
-    [0,1],[0,2],
-    [-1,0],[-2,0],
-    [1,0],[2,0],
-]
+const KERNEL_UDLR2: XY[] = [
+    [0, -1],
+    [0, -2],
+    [0, 1],
+    [0, 2],
+    [-1, 0],
+    [-2, 0],
+    [1, 0],
+    [2, 0],
+];
 
 export class FollowerEntity extends Entity {
     constructor(tile: XY, state: State) {
@@ -129,26 +134,28 @@ export class FollowerEntity extends Entity {
     }
 
     private allClear(tiles: [Tile?, Tile?]): number | null {
-        return tiles[0] && !tiles[0].solid
-            && tiles[1] && !tiles[1].solid && tiles[1].entity == undefined
-            ? tiles[1].visDistance : null
+        return tiles[0] && !tiles[0].solid && tiles[1] && !tiles[1].solid && tiles[1].entity == undefined
+            ? tiles[1].visDistance
+            : null;
     }
 
     public onTurn(state: State): ActionAnimation | undefined {
         const t = this.getTile();
         const results = state.maze.getKernel(t, KERNEL_UDLR2);
 
-        const up = this.allClear([results[0],results[1]]);//(results[0] && results[1] && !results[0].solid && !results[1].solid) ? results[1].visDistance : null;
-        const dn = this.allClear([results[2],results[3]]);
-        const lf = this.allClear([results[4],results[5]]);
-        const rt = this.allClear([results[6],results[7]]);
+        const up = this.allClear([results[0], results[1]]); //(results[0] && results[1] && !results[0].solid && !results[1].solid) ? results[1].visDistance : null;
+        const dn = this.allClear([results[2], results[3]]);
+        const lf = this.allClear([results[4], results[5]]);
+        const rt = this.allClear([results[6], results[7]]);
 
-        let option = [
-            {dist: up, dir: KERNEL_UDLR2[1]},
-            {dist: dn, dir: KERNEL_UDLR2[3]},
-            {dist: lf, dir: KERNEL_UDLR2[5]},
-            {dist: rt, dir: KERNEL_UDLR2[7]}
-        ].filter(x=>x.dist != null).sort((a,b)=>a.dist! - b.dist!)[0]; // TODO not sure if this is sorting in the right direction
+        const option = [
+            { dist: up, dir: KERNEL_UDLR2[1] },
+            { dist: dn, dir: KERNEL_UDLR2[3] },
+            { dist: lf, dir: KERNEL_UDLR2[5] },
+            { dist: rt, dir: KERNEL_UDLR2[7] },
+        ]
+            .filter(x => x.dist != null)
+            .sort((a, b) => a.dist! - b.dist!)[0]; // TODO not sure if this is sorting in the right direction
 
         if (option) {
             if (option.dir[0] < 0) {
@@ -163,7 +170,6 @@ export class FollowerEntity extends Entity {
             if (option.dir[1] > 0) {
                 return walkAnimation(0, 1, this);
             }
-
         }
 
         return undefined;

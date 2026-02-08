@@ -1,5 +1,5 @@
 import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
-import { ActionAnimation, createParallelAnimation } from "./animation";
+import { type ActionAnimation, createParallelAnimation } from "./animation";
 import { EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
 import { L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
@@ -44,8 +44,8 @@ export class GameComponent extends HTMLElement {
 
     connectedCallback() {
         console.log("connected");
-        L1.params.filter(p => p.name == "Width").forEach(p => p.value = 15);
-        L1.params.filter(p => p.name == "Height").forEach(p => p.value = 15);
+        L1.params.filter(p => p.name == "Width").forEach(p => (p.value = 15));
+        L1.params.filter(p => p.name == "Height").forEach(p => (p.value = 15));
 
         this.elements = {
             canvas: this.querySelector("canvas") as HTMLCanvasElement,
@@ -181,7 +181,7 @@ export class GameComponent extends HTMLElement {
         }
         // TODO process this in a different phase of animation
         // TOOD only process discovered ones
-        let animations: ActionAnimation[] = [];
+        const animations: ActionAnimation[] = [];
         this.state.entities.forEachEntity(e => {
             const a = e.onTurn(this.state!);
             if (a) {
@@ -189,7 +189,7 @@ export class GameComponent extends HTMLElement {
             }
         });
         if (animations.length > 0) {
-            console.log("animations", animations.length)
+            console.log("animations", animations.length);
             this.state.animation = createParallelAnimation(animations);
             this.state.phase = "WORLD_ANIM";
         } else {
@@ -210,7 +210,6 @@ export class GameComponent extends HTMLElement {
 
         // TODO move this to its own place
         calcVisibility(this.state, this.state.entities.getEntityByName("player")!.getTile(), 4, Date.now());
-
     }
 
     private updateButtons() {
@@ -259,14 +258,11 @@ export class GameComponent extends HTMLElement {
                 if (finished) {
                     this.state.animation = null;
 
-
                     if (this.state.phase == "PLAYER_ANIM") {
                         this.startWorldAnim();
-
                     } else {
                         this.state.phase = "READY";
                     }
-
                 }
             }
         }
@@ -295,15 +291,23 @@ export class GameComponent extends HTMLElement {
 
                 this.state.entities.addEntity("player", new PlayerEntity(pos, this.state!), this.state!);
                 this.state.start &&
-                    this.state.entities.addEntity("start", new StaticEntity(this.state.start, this.state!, "start"), this.state!);
+                    this.state.entities.addEntity(
+                        "start",
+                        new StaticEntity(this.state.start, this.state!, "start"),
+                        this.state!,
+                    );
                 this.state.end &&
                     this.state.entities.addEntity("end", new EndEntity(this.state.end, this.state!), this.state!);
 
                 this.state.maze.forEach((x, y, t) => {
                     if (x % 2 == 1 && y % 2 == 1 && !t.solid && !t.entity && Math.random() > 0.85) {
-                        this.state?.entities.addEntity("enemy" + x + "," + y, new FollowerEntity([x, y], this.state!), this.state);
+                        this.state?.entities.addEntity(
+                            "enemy" + x + "," + y,
+                            new FollowerEntity([x, y], this.state!),
+                            this.state,
+                        );
                     }
-                })
+                });
 
                 // Find the tile with the "key" item and add an entity
                 this.state.maze.forEach((x, y, t) => {
@@ -323,7 +327,6 @@ export class GameComponent extends HTMLElement {
         if (this.ctx && this.state) {
             this.ctx.fillStyle = "cyan";
             this.ctx.fillText(this.state.phase, 10, 10);
-
         }
 
         this.lastFrameTime = time;

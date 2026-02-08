@@ -1,4 +1,4 @@
-import { addXY, XYReadOnly, type Rect, type XY } from "./xy";
+import { addXY, type Rect, type XY, type XYReadOnly } from "./xy";
 
 export class Array2<T> {
     private data: T[] = [];

@@ -73,8 +73,8 @@ function getCornerName(x: number, y: number, tile: Tile, maze: any, showBottom: 
             return !below || below.type === "wall" || below.type === "door"
                 ? "corner.full"
                 : below && below.type === "outside"
-                    ? "corner.wall_outside"
-                    : "corner.w1";
+                  ? "corner.wall_outside"
+                  : "corner.w1";
         }
     }
     return tile.type == "hall" ? "corner.f2" : "corner.f1";
@@ -141,20 +141,22 @@ export class PixelRenderer implements Renderer {
             const s = player.getSprite()!;
             const [x, y] = player.getTile();
 
-
-            offset[0] = Math.floor((state.viewportSize[0] - W_LARGE) / 2) - (Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0]); // TODO this should a include the sprite offset of the player
-            offset[1] = Math.floor((state.viewportSize[1] - H_LARGE) / 2) - (Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1]); // TODO center this properly
-
+            offset[0] =
+                Math.floor((state.viewportSize[0] - W_LARGE) / 2) -
+                (Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0]); // TODO this should a include the sprite offset of the player
+            offset[1] =
+                Math.floor((state.viewportSize[1] - H_LARGE) / 2) -
+                (Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1]); // TODO center this properly
         }
 
         const visibleBounds: Rect = {
             left: Math.floor(-offset[0] / 18) * 2,
             top: Math.floor(-offset[1] / 18) * 2,
             width: state.viewportSize![0],
-            height: state.viewportSize![1]
-        }
+            height: state.viewportSize![1],
+        };
 
-        let visibileRegion = new Path2D(); // Only draw entities in this region
+        const visibileRegion = new Path2D(); // Only draw entities in this region
 
         state.maze.forEachRect(visibleBounds, (x, y, t) => {
             if (!t.discovered) {
@@ -186,15 +188,13 @@ export class PixelRenderer implements Renderer {
             if (t.visTimestamp !== state.visTimestamp) {
                 applyShading(ctx, rect);
                 // shadingRects.push(rect); // HERE 1
-            }
-            else {
-                visibileRegion.rect(rect.left, rect.top, rect.width, rect.height)
+            } else {
+                visibileRegion.rect(rect.left, rect.top, rect.width, rect.height);
             }
         });
 
         ctx.save();
-        ctx.clip(visibileRegion, 'evenodd');
-
+        ctx.clip(visibileRegion, "evenodd");
 
         // sprites
         state.entities.forEachEntity(e => {
@@ -208,13 +208,11 @@ export class PixelRenderer implements Renderer {
                 ];
                 if (typeof s.sprite === "string") {
                     sprites.draw(ctx, addXY(pos, offset), s.sprite as any);
-                }
-                else {
+                } else {
                     sprites.drawRegion(ctx, addXY(pos, offset), s.sprite as Rect);
                 }
             }
         });
-
 
         ctx.restore();
     }

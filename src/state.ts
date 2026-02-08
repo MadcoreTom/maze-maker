@@ -1,5 +1,5 @@
-import { type Action } from "./action";
-import { ActionAnimation } from "./animation";
+import type { Action } from "./action";
+import type { ActionAnimation } from "./animation";
 import { Entities } from "./entities/entities";
 import type { Entity } from "./entities/entity";
 import { Array2 } from "./util/array2";
@@ -38,7 +38,7 @@ export type State = {
     visTimestamp: number; // The timestamp of the latest pass of visibility calculations
     triggerNewLevel?: boolean;
     inventory: string[];
-    phase: "READY" | "PLAYER_ANIM" | "WORLD_ANIM" // TODO use enum
+    phase: "READY" | "PLAYER_ANIM" | "WORLD_ANIM"; // TODO use enum
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -78,7 +78,7 @@ export function createInitialState(): State {
         },
         visTimestamp: 0,
         inventory: [],
-        phase: "READY"
+        phase: "READY",
     };
 }
 
