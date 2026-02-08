@@ -1,7 +1,7 @@
-import { NumberInput } from "./draggable-number-input";
-import { applyStyle, createElement } from "./element-util";
-import { GameComponent } from "./game-component";
-import { LayerComponent } from "./layer-component";
+import { NumberInput } from "./components/draggable-number-input";
+import { GameComponent } from "./components/game-component";
+import { LayerComponent } from "./components/layer-component";
+import { applyStyle, createElement } from "./components/element-util";
 import { ALL_LAYERS, L1 } from "./layers";
 import type { LayerLogic } from "./layers/layer";
 import { createInitialState, type State } from "./state";

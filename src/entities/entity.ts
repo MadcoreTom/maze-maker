@@ -1,4 +1,4 @@
-import { type Action, CollectAction, EndAction } from "../action";
+import { type Action, ActionDirection, CollectAction, EndAction } from "../action";
 import { type ActionAnimation, walkAnimation } from "../animation";
 import type { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
@@ -47,7 +47,7 @@ export abstract class Entity {
         return this.sprite;
     }
 
-    public getAction(state: State): Action | undefined {
+    public getAction(state: State, direction: ActionDirection): Action | undefined {
         return undefined;
     }
 
@@ -75,8 +75,8 @@ export class KeyEntity extends Entity {
         };
     }
 
-    public getAction(state: State): Action | undefined {
-        return new CollectAction("key", this);
+    public getAction(state: State, direction: ActionDirection): Action | undefined {
+        return new CollectAction("key", this, direction);
     }
 }
 
@@ -108,8 +108,8 @@ export class EndEntity extends Entity {
             sprite: "end",
         };
     }
-    public getAction(state: State): Action | undefined {
-        return new EndAction();
+    public getAction(state: State, direction: ActionDirection): Action | undefined {
+        return new EndAction(direction);
     }
 }
 

@@ -1,13 +1,13 @@
-import { type Action, ActionDirection, calculateAllActions, OpenDoorAction, WalkAction } from "./action";
-import { type ActionAnimation, createParallelAnimation } from "./animation";
-import { EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "./entities/entity";
-import { L1 } from "./layers";
-import type { LayerLogic } from "./layers/layer";
-import { PixelRenderer } from "./render/renderer-pixel";
-import { createInitialState, type Sprite, type State } from "./state";
-import type { MyGenerator } from "./types";
-import { calcVisibility } from "./util/distance";
-import { cloneXY, type XY } from "./util/xy";
+import { type Action, calculateAllActions } from "../action";
+import { type ActionAnimation, createParallelAnimation } from "../animation";
+import { EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "../entities/entity";
+import { L1 } from "../layers";
+import type { LayerLogic } from "../layers/layer";
+import { PixelRenderer } from "../render/renderer-pixel";
+import { createInitialState, type State } from "../state";
+import type { MyGenerator } from "../types";
+import { calcVisibility } from "../util/distance";
+import { type XY } from "../util/xy";
 
 enum Control {
     UP,

@@ -1,4 +1,4 @@
-import { type ActionAnimation, walkAnimation } from "./animation";
+import { type ActionAnimation, collectAnimation, walkAnimation } from "./animation";
 import type { Entity } from "./entities/entity";
 import type { Sprite, State } from "./state";
 import { addXY, type XY } from "./util/xy";
@@ -6,7 +6,7 @@ import { addXY, type XY } from "./util/xy";
 export type ActionDirection = [-1, 0] | [1, 0] | [0, -1] | [0, 1];
 
 export abstract class Action {
-    public constructor(public readonly displayName: string) {}
+    public constructor(public readonly displayName: string, protected readonly direction: ActionDirection) {}
     public onClick(state: State): void {}
     public getAnimation(state: State): null | ActionAnimation {
         return null;
@@ -14,7 +14,7 @@ export abstract class Action {
 }
 
 export class WalkAction extends Action {
-    public constructor(private readonly direction: ActionDirection) {
+    public constructor( direction: ActionDirection) {
         let displayName = "";
         if (direction[0] < 0) {
             displayName = "< WALK";
@@ -25,7 +25,7 @@ export class WalkAction extends Action {
         } else {
             displayName = "v WALK v";
         }
-        super(displayName);
+        super(displayName, direction);
     }
 
     public getAnimation(state: State): null | ActionAnimation {
@@ -35,8 +35,8 @@ export class WalkAction extends Action {
 }
 
 export class EndAction extends Action {
-    constructor() {
-        super("Next Level");
+    constructor(direction: ActionDirection) {
+        super("Next Level",direction);
     }
     public onClick(state: State): void {
         state.triggerNewLevel = true;
@@ -46,22 +46,25 @@ export class EndAction extends Action {
 export class CollectAction extends Action {
     public constructor(
         private readonly itemName: string,
-        private readonly targetEntity: Entity,
+        private readonly targetEntity: Entity,direction: ActionDirection
     ) {
-        super(`Collect ${itemName}`);
+        super(`Collect ${itemName}`, direction);
     }
 
     public onClick(state: State): void {
         console.log("Collect", this.itemName);
         state.inventory.push(this.itemName);
         console.log("Inventory", state.inventory);
-        this.targetEntity.die();
+    }
+
+    public getAnimation(state: State): null | ActionAnimation {
+        return collectAnimation(this.direction[0],this.direction[1],state.entities.getEntityByName("player"), this.targetEntity);
     }
 }
 
 export class OpenDoorAction extends Action {
-    public constructor(private readonly direction: ActionDirection) {
-        super("Open Door");
+    public constructor( direction: ActionDirection) {
+        super("Open Door", direction);
     }
 
     public onClick(state: State): void {
@@ -97,7 +100,7 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
         const targetPosition = addXY(coords, kernel[1]);
         const targetEntity = state.maze.get(targetPosition[0], targetPosition[1])?.entity;
         if (targetEntity) {
-            const action = targetEntity.getAction(state);
+            const action = targetEntity.getAction(state, [dx,dy] as ActionDirection);
             if (action) {
                 return action;
             }

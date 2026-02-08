@@ -43,3 +43,34 @@ export function walkAnimation(dx: number, dy: number, entity: Entity): ActionAni
         return false;
     };
 }
+
+export function collectAnimation(dx: number, dy: number, player: Entity, item: Entity): ActionAnimation {
+    let progress = 0;
+    return (delta: number, state: State) => {
+        progress += delta / 300;
+        const p = progress >= 0.5 ? 1 - progress : progress;
+
+        const sprite = player.getSprite();
+        if (sprite) {
+            // Update sprite offset during animation
+            sprite.offset[0] = Math.floor(p * 18) * dx; // TODO this magic number is W_LARGE + W_SMALL (or the H_ equivalent)
+            sprite.offset[1] = Math.floor(p * 18) * dy;
+        }
+
+        const sprite2 = item.getSprite();
+        if (sprite2) {
+            // Update sprite offset during animation
+            sprite2.offset[0] = Math.floor(p * 18) * -dx; // TODO this magic number is W_LARGE + W_SMALL (or the H_ equivalent)
+            sprite2.offset[1] = Math.floor(p * 18) * -dy;
+        }
+
+        if(progress >= 0.5){
+            item.die();
+        }
+
+        if (progress >= 1) {
+            return true;
+        }
+        return false;
+    };
+}

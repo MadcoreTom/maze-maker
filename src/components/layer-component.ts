@@ -1,7 +1,7 @@
 import { applyStyle, createElement } from "./element-util";
-import { ALL_LAYERS } from "./layers";
-import type { LayerLogic } from "./layers/layer";
-import { MazeComponent } from "./main";
+import { ALL_LAYERS } from "../layers";
+import type { LayerLogic } from "../layers/layer";
+import { MazeComponent } from "../main";
 
 export class LayerComponent extends HTMLElement {
     private layer: LayerLogic;
