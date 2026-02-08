@@ -147,7 +147,15 @@ export class PixelRenderer implements Renderer {
             
         }
 
-        state.maze.forEach((x, y, t) => {
+        const visibleBounds:Rect = {
+            left: Math.floor(-offset[0]/18)*2,
+            top: Math.floor(-offset[1]/18)*2,
+            width: state.viewportSize![0],
+            height: state.viewportSize![1]
+        }
+
+
+        state.maze.forEachRect(visibleBounds,(x, y, t) => {
             // const visibility = calcVisibility([x, y], t, state);
             if (!t.discovered) {
                 return;
@@ -179,6 +187,7 @@ export class PixelRenderer implements Renderer {
                 applyShading(ctx, rect);
             }
         });
+
 
         // sprites
         state.entities.forEachEntity(e => {
