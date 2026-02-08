@@ -139,6 +139,10 @@ export class FollowerEntity extends Entity {
             : null;
     }
 
+    public getAction(state: State, direction: ActionDirection): Action | undefined {
+        return new CollectAction("bones",this,direction);
+    }
+
     public onTurn(state: State): ActionAnimation | undefined {
         const t = this.getTile();
         const results = state.maze.getKernel(t, KERNEL_UDLR2);

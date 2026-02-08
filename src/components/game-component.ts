@@ -194,10 +194,9 @@ export class GameComponent extends HTMLElement {
             this.state.phase = "WORLD_ANIM";
         } else {
             this.state.phase = "READY";
+            this.updateActions();
+            this.updateButtons();
         }
-        // TODO calculate next available actions (unless its time for sprites to take turns?)
-        this.updateActions();
-        this.updateButtons();
     }
 
     // TODO this just has null check and calls another function. it cam be improved to be called from places where its already know not to be null
@@ -262,6 +261,8 @@ export class GameComponent extends HTMLElement {
                         this.startWorldAnim();
                     } else {
                         this.state.phase = "READY";
+                        this.updateActions();
+                        this.updateButtons();
                     }
                 }
             }
