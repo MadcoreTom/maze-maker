@@ -73,11 +73,11 @@ function getCornerName(x: number, y: number, tile: Tile, maze: any, showBottom: 
             return !below || below.type === "wall" || below.type === "door"
                 ? "corner.full"
                 : below && below.type === "outside"
-                  ? "corner.wall_outside"
-                  : "corner.w1";
+                    ? "corner.wall_outside"
+                    : "corner.w1";
         }
     }
-    return tile.type == "hall" ?  "corner.f2" :  "corner.f1";
+    return tile.type == "hall" ? "corner.f2" : "corner.f1";
 }
 
 function getVWallName(tile: Tile): string {
@@ -87,8 +87,8 @@ function getVWallName(tile: Tile): string {
         const closed = tile.items && tile.items.door && tile.items.door !== "open";
         return closed ? "vwall.door.closed" : "vwall.door.open";
     }
-   
-       return tile.type == "hall" ?  "vwall.f2" :  "vwall.f1";
+
+    return tile.type == "hall" ? "vwall.f2" : "vwall.f1";
 }
 
 function getHWallName(x: number, y: number, tile: Tile, maze: any, showBottom: boolean): string {
@@ -105,26 +105,26 @@ function getHWallName(x: number, y: number, tile: Tile, maze: any, showBottom: b
     }
     if (tile.type === "outside") return "hwall.outside";
     if (tile.type === "door") return tile.items && tile.items.door === "open" ? "hwall.door.open" : "hwall.door.closed";
-    return tile.type == "hall" ?  "hwall.f2" :  "hwall.f1";
+    return tile.type == "hall" ? "hwall.f2" : "hwall.f1";
 }
 
 function getTileName(tile: Tile): string {
     if (tile.type === "outside") return "tile.outside";
-    return tile.type == "hall" ?  "tile.f2" :  "tile.f1";
+    return tile.type == "hall" ? "tile.f2" : "tile.f1";
 }
 
 function applyShading(ctx: CanvasRenderingContext2D, rect: Rect): void {
-    if(rect.width == W_LARGE){
-        if(rect.height == H_LARGE){
-            tiles.draw(ctx, [rect.left, rect.top],"tile.fog");
+    if (rect.width == W_LARGE) {
+        if (rect.height == H_LARGE) {
+            tiles.draw(ctx, [rect.left, rect.top], "tile.fog");
         } else {
-            tiles.draw(ctx, [rect.left, rect.top],"hwall.fog");
+            tiles.draw(ctx, [rect.left, rect.top], "hwall.fog");
         }
     } else {
-        if(rect.height == H_LARGE){
-            tiles.draw(ctx, [rect.left, rect.top],"vwall.fog");
+        if (rect.height == H_LARGE) {
+            tiles.draw(ctx, [rect.left, rect.top], "vwall.fog");
         } else {
-            tiles.draw(ctx, [rect.left, rect.top],"corner.fog");
+            tiles.draw(ctx, [rect.left, rect.top], "corner.fog");
         }
     }
 }
@@ -139,24 +139,24 @@ export class PixelRenderer implements Renderer {
         const player = state.entities.getEntityByName("player");
         if (player && state.viewportSize) {
             const s = player.getSprite()!;
-            const [x,y] = player.getTile();
-                     
-                     
+            const [x, y] = player.getTile();
+
+
             offset[0] = Math.floor((state.viewportSize[0] - W_LARGE) / 2) - (Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0]); // TODO this should a include the sprite offset of the player
             offset[1] = Math.floor((state.viewportSize[1] - H_LARGE) / 2) - (Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1]); // TODO center this properly
-            
+
         }
 
-        const visibleBounds:Rect = {
-            left: Math.floor(-offset[0]/18)*2,
-            top: Math.floor(-offset[1]/18)*2,
+        const visibleBounds: Rect = {
+            left: Math.floor(-offset[0] / 18) * 2,
+            top: Math.floor(-offset[1] / 18) * 2,
             width: state.viewportSize![0],
             height: state.viewportSize![1]
         }
 
+        let visibileRegion = new Path2D(); // Only draw entities in this region
 
-        state.maze.forEachRect(visibleBounds,(x, y, t) => {
-            // const visibility = calcVisibility([x, y], t, state);
+        state.maze.forEachRect(visibleBounds, (x, y, t) => {
             if (!t.discovered) {
                 return;
             }
@@ -185,25 +185,26 @@ export class PixelRenderer implements Renderer {
             tiles.draw(ctx, [rect.left, rect.top], tileName as any);
             if (t.visTimestamp !== state.visTimestamp) {
                 applyShading(ctx, rect);
+                // shadingRects.push(rect); // HERE 1
+            }
+            else {
+                visibileRegion.rect(rect.left, rect.top, rect.width, rect.height)
             }
         });
+
+        ctx.save();
+        ctx.clip(visibileRegion, 'evenodd');
 
 
         // sprites
         state.entities.forEachEntity(e => {
-            const t = state.maze.get(e.getTile()[0],e.getTile()[1]);
-            if(!t || t.visTimestamp != state.visTimestamp){
-                // only render if not shaded
-                return;
-            }
-            // TODO handle sprite offsets
             // TODO handle child sprites eventually
             const s = e.getSprite();
-            const [x,y] = e.getTile();
+            const [x, y] = e.getTile();
             if (s) {
                 const pos: XY = [
-                     Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0],
-                     Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1],
+                    Math.floor(x / 2) * (W_SMALL + W_LARGE) + (x % 2) * W_SMALL + s.offset[0],
+                    Math.floor(y / 2) * (H_SMALL + H_LARGE) + (y % 2) * H_SMALL + s.offset[1],
                 ];
                 if (typeof s.sprite === "string") {
                     sprites.draw(ctx, addXY(pos, offset), s.sprite as any);
@@ -213,5 +214,8 @@ export class PixelRenderer implements Renderer {
                 }
             }
         });
+
+
+        ctx.restore();
     }
 }
