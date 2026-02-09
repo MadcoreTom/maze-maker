@@ -1,4 +1,4 @@
-import { type Action, ActionDirection, CollectAction, EndAction } from "../action";
+import { type Action, ActionDirection, CollectAction, EndAction, OpenDoorAction } from "../action";
 import { type ActionAnimation, walkAnimation } from "../animation";
 import type { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
@@ -9,7 +9,7 @@ export abstract class Entity {
     protected sprite?: Sprite;
     private dead: boolean = false;
 
-    public constructor(tile: XY, state: State) {
+    public constructor(tile: XY) {
         this.tile = cloneXY(tile);
     }
 
@@ -82,7 +82,7 @@ export class KeyEntity extends Entity {
 
 export class PlayerEntity extends Entity {
     constructor(tile: XY, state: State) {
-        super(tile, state);
+        super(tile);
         this.sprite = {
             offset: [0, 0],
             sprite: { left: 0, top: 0, width: 16, height: 12 },
@@ -92,7 +92,7 @@ export class PlayerEntity extends Entity {
 
 export class StaticEntity extends Entity {
     constructor(tile: XY, state: State, sprite: string | Rect) {
-        super(tile, state);
+        super(tile);
         this.sprite = {
             offset: [0, 0],
             sprite: sprite,
@@ -102,7 +102,7 @@ export class StaticEntity extends Entity {
 
 export class EndEntity extends Entity {
     constructor(tile: XY, state: State) {
-        super(tile, state);
+        super(tile);
         this.sprite = {
             offset: [0, 0],
             sprite: "end",
@@ -126,7 +126,7 @@ const KERNEL_UDLR2: XY[] = [
 
 export class FollowerEntity extends Entity {
     constructor(tile: XY, state: State) {
-        super(tile, state);
+        super(tile);
         this.sprite = {
             offset: [0, 0],
             sprite: "imp",
@@ -177,5 +177,21 @@ export class FollowerEntity extends Entity {
         }
 
         return undefined;
+    }
+}
+
+export class DoorEntity extends Entity {
+    public constructor(tile:XY, private readonly mode: "open" | "locked" | "closed"){
+        super(tile);
+    }
+
+    public getAction(state: State, direction: ActionDirection): Action | undefined {
+        if(this.mode == "open"){
+            return undefined;
+        } else if(this.mode == "closed"){
+            return new OpenDoorAction(direction);
+        } else {
+            return undefined;
+        }
     }
 }

@@ -72,10 +72,12 @@ export class OpenDoorAction extends Action {
         if (playerEntity) {
             const playerTile = playerEntity.getTile();
             const tile = state.maze.get(playerTile[0] + this.direction[0], playerTile[1] + this.direction[1]);
-            if (tile?.items?.door) {
-                // TODO handle locked doors
+            
+            if(tile && tile.entity && tile.items){
                 tile.solid = false;
                 tile.items.door = "open";
+                console.log("open")
+                tile.entity["mode"] = "open"; // TODO make it a public property or setter
             }
         }
     }
@@ -95,9 +97,9 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
     const coords = playerEntity.getTile() as XY;
     const result = state.maze.getKernel(coords, kernel);
 
-    // check entities
-    if (result[0] && !result[0].solid) {
-        const targetPosition = addXY(coords, kernel[1]);
+    // check entities on the wall
+    if (result[0]) {
+        const targetPosition = addXY(coords, kernel[0]);
         const targetEntity = state.maze.get(targetPosition[0], targetPosition[1])?.entity;
         if (targetEntity) {
             const action = targetEntity.getAction(state, [dx,dy] as ActionDirection);
@@ -107,16 +109,22 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
         }
     }
 
-    if (result[0] && !result[0].solid && result[1] && !result[1].solid) {
-        return new WalkAction([dx, dy] as ActionDirection);
-    } else if (result[0]?.items && result[1] && !result[1].solid) {
-        if ("closed" === result[0].items.door) {
-            return new OpenDoorAction([dx, dy] as ActionDirection);
-        } else if ("locked" === result[0].items.door) {
-            // TODO requires key
-            return new OpenDoorAction([dx, dy] as ActionDirection);
+    // if the wall isnt solid and has no entity, cehck the actual tile
+    if (result[0] && !result[0].solid && result[1] ) {
+
+        const targetPosition = addXY(coords, kernel[1]);
+        const targetEntity = state.maze.get(targetPosition[0], targetPosition[1])?.entity;
+        if (targetEntity) {
+            const action = targetEntity.getAction(state, [dx,dy] as ActionDirection);
+            if (action) {
+                return action;
+            }
+        }
+        if(!result[1].solid){
+            return new WalkAction([dx, dy] as ActionDirection);
         }
     }
+        
     return null;
 }
 

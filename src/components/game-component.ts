@@ -1,6 +1,6 @@
 import { type Action, calculateAllActions } from "../action";
 import { type ActionAnimation, createParallelAnimation } from "../animation";
-import { EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "../entities/entity";
+import { DoorEntity, EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "../entities/entity";
 import { L1 } from "../layers";
 import type { LayerLogic } from "../layers/layer";
 import { PixelRenderer } from "../render/renderer-pixel";
@@ -307,6 +307,17 @@ export class GameComponent extends HTMLElement {
                             new FollowerEntity([x, y], this.state!),
                             this.state,
                         );
+                    } 
+
+                    if(t.type == "door"){
+                        // TODO introduce some sort of unnamed entity
+                        if (t.items && t.items.door && t.items.door !== "open") {
+                            this.state?.entities.addEntity(
+                                "door" + x + "," + y,
+                                new DoorEntity([x, y], t.items && t.items.door && t.items.door == "closed" ? "closed" : "locked"),
+                                this.state,
+                            );
+                        }
                     }
                 });
 
