@@ -69,6 +69,8 @@ export function collectAnimation(dx: number, dy: number, player: Entity, item: E
         }
 
         if (progress >= 1) {
+            sprite && (sprite.offset = [0,0]);
+            sprite2 && (sprite2.offset = [0,0]);
             return true;
         }
         return false;

@@ -338,7 +338,10 @@ export class GameComponent extends HTMLElement {
 
         if (this.ctx && this.state) {
             this.ctx.fillStyle = "cyan";
-            this.ctx.fillText(this.state.phase, 10, 10);
+            this.state.inventory.forEach((name,idx)=>{
+                this.ctx!.fillText(name, 10, 10 + 10 * idx);
+            })
+            
         }
 
         this.lastFrameTime = time;

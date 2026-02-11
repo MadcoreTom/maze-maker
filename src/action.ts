@@ -63,8 +63,8 @@ export class CollectAction extends Action {
 }
 
 export class OpenDoorAction extends Action {
-    public constructor( direction: ActionDirection) {
-        super("Open Door", direction);
+    public constructor( direction: ActionDirection, displayName:string = "Open Door") {
+        super(displayName, direction);
     }
 
     public onClick(state: State): void {
@@ -126,6 +126,12 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
     }
         
     return null;
+}
+
+export class NoopAction extends Action {
+    public constructor( displayName: string, direction: ActionDirection) {
+        super(displayName, direction);
+    }
 }
 
 export function calculateAllActions(state: State): {

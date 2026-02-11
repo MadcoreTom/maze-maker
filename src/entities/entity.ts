@@ -1,4 +1,4 @@
-import { type Action, ActionDirection, CollectAction, EndAction, OpenDoorAction } from "../action";
+import { type Action, ActionDirection, CollectAction, EndAction, NoopAction, OpenDoorAction } from "../action";
 import { type ActionAnimation, walkAnimation } from "../animation";
 import type { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
@@ -191,7 +191,10 @@ export class DoorEntity extends Entity {
         } else if(this.mode == "closed"){
             return new OpenDoorAction(direction);
         } else {
-            return undefined;
+            if(state.inventory.indexOf("key") >= 0){
+                return new OpenDoorAction(direction, "Unlock");
+            }
+            return new NoopAction("REQUIRES KEY", direction);
         }
     }
 }
