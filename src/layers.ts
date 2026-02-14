@@ -34,3 +34,37 @@ registerLayer(L5, L3);
 registerLayer(L6, L5);
 registerLayer(L7, L6);
 registerLayer(L8, L7);
+
+
+type ParamConfigItem = {[name:string]:number};
+
+let allParams:ParamConfigItem[] = [];
+let cur:LayerLogic | undefined = L1;
+
+while(cur !== undefined){
+    const curItem:ParamConfigItem = {};
+    cur.params.forEach(p=>{
+        curItem[p.name] = p.value;
+    });
+    allParams.push(curItem);
+    cur = cur.next;
+}
+
+console.log("PARAMS",JSON.stringify(allParams, null, 2));
+
+// I grabbed the params and override them here
+
+
+
+// then i can apply them
+export function applyParams(params: ParamConfigItem[]) {
+    cur = L1;
+
+    let i = 0;
+    while (cur !== undefined) {
+        Object.entries(params[i++]).forEach(([k, v]) => {
+            cur!.params.filter(p => p.name === k).forEach(p => p.value = v);
+        });
+        cur = cur.next;
+    }
+}

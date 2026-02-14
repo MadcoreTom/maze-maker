@@ -1,5 +1,5 @@
 import type { State, Tile } from "../state";
-import type { Rect, XY } from "../util/xy";
+import { equalsXY, type Rect, type XY } from "../util/xy";
 import { PALETTE } from "./colour";
 import type { Renderer } from "./render-interface";
 
@@ -103,7 +103,7 @@ export class BaseRenderer implements Renderer {
             }
 
             if (t.items.door) {
-                const colour = { open: "limegreen", closed: "yellow", locked: "red" }[t.items.door];
+                const colour = { open: "limegreen", closed: "yellow", locked: "magenta" }[t.items.door];
                 this.rectangle(ctx, colour, rect);
             }
         }

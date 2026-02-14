@@ -1,7 +1,7 @@
 import { type Action, calculateAllActions } from "../action";
 import { type ActionAnimation, createParallelAnimation } from "../animation";
 import { DoorEntity, EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "../entities/entity";
-import { L1 } from "../layers";
+import { applyParams, L1 } from "../layers";
 import type { LayerLogic } from "../layers/layer";
 import { PixelRenderer } from "../render/renderer-pixel";
 import { createInitialState, type State } from "../state";
@@ -44,8 +44,27 @@ export class GameComponent extends HTMLElement {
 
     connectedCallback() {
         console.log("connected");
-        L1.params.filter(p => p.name == "Width").forEach(p => (p.value = 15));
-        L1.params.filter(p => p.name == "Height").forEach(p => (p.value = 15));
+        // L1.params.filter(p => p.name == "Width").forEach(p => (p.value = 21));
+        // L1.params.filter(p => p.name == "Height").forEach(p => (p.value = 21));
+        applyParams([
+            {
+                "Width": 31,
+                "Height": 9
+            },
+            {
+                "Rooms": 3,
+                "Width Range": 3,
+                "Height Range": 2
+            },
+            {},
+            {
+                "iterations": 1
+            },
+            {},
+            {},
+            {},
+            {}
+        ]);
 
         this.elements = {
             canvas: this.querySelector("canvas") as HTMLCanvasElement,

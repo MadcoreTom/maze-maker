@@ -32,8 +32,8 @@ export class FarthestLayer extends LayerLogic {
             yield* tracePath(state.maze, last2, "distance", t => {
                 t.mainPath = true;
             });
-            state.start = last2;
-            state.end = last;
+            state.start = last;
+            state.end = last2;
             yield;
         };
     }

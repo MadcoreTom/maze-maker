@@ -47,14 +47,15 @@ export class RoomLayer extends LayerLogic {
             y = 1 + 2 * Math.floor(Math.random() * (state.maze.h / 2 - h));
             console.log("Attempt", x, y, w, h);
             // find any neighbouring rooms
-            state.maze.forEach((xx, yy, t) => {
-                if (xx >= x - 1 && xx < x + w + 1 && yy >= y - 1 && yy < y + h + 1) {
+            state.maze.forEachRect(
+                { left: x - 1, top: y - 1, width: w + 2, height: h + 2 },
+                (xx, yy, t) => {
                     if (t.type === "room") {
                         tryAgain = true;
                     }
                     roomId = Math.max(roomId, t.roomId);
                 }
-            });
+            );
         }
         return {
             left: x,
@@ -77,6 +78,7 @@ export class RoomLayer extends LayerLogic {
                 // Pick a random location
                 const rect = me.pickRoom(state, wr, hr);
                 console.log("R", rect);
+                const roomIdsToReplace:Set<number> = new Set();
                 // set all the rooms
                 state.maze.forEach((xx, yy, t) => {
                     if (
@@ -85,12 +87,21 @@ export class RoomLayer extends LayerLogic {
                         yy >= rect.top &&
                         yy < rect.top + rect.height
                     ) {
+                        if(!t.solid){
+                            roomIdsToReplace.add(t.roomId);
+                        }
                         t.type = "room";
                         t.solid = false;
                         t.roomId = rect.roomId;
                     }
                 });
                 // update any other rooms if there was an overlap
+                state.maze.forEach((xx, yy, t) => {
+                    if(roomIdsToReplace.has(t.roomId)){
+                        t.roomId = rect.roomId;
+                    }
+                });
+
 
                 yield;
             }
