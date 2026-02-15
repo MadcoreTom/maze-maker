@@ -44,6 +44,7 @@ const sprites = new ImageMap("sprites.png", {
     end: { left: 32, top: 0, width: 16, height: 12 },
     key: { left: 48, top: 0, width: 16, height: 12 },
     imp: { left: 64, top: 0, width: 16, height: 12 },
+    rat: { left: 80, top: 0, width: 16, height: 12 },
 });
 
 const W_SMALL = 2;

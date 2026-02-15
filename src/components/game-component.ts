@@ -1,6 +1,7 @@
 import { type Action, calculateAllActions } from "../action";
 import { type ActionAnimation, createParallelAnimation } from "../animation";
 import { DoorEntity, EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "../entities/entity";
+import { RatEntity } from "../entities/rat.entity";
 import { applyParams, L1 } from "../layers";
 import type { LayerLogic } from "../layers/layer";
 import { PixelRenderer } from "../render/renderer-pixel";
@@ -320,15 +321,23 @@ export class GameComponent extends HTMLElement {
                     this.state.entities.addEntity("end", new EndEntity(this.state.end, this.state!), this.state!);
 
                 this.state.maze.forEach((x, y, t) => {
-                    if (x % 2 == 1 && y % 2 == 1 && !t.solid && !t.entity && Math.random() > 0.85) {
-                        this.state?.entities.addEntity(
-                            "enemy" + x + "," + y,
-                            new FollowerEntity([x, y], this.state!),
-                            this.state,
-                        );
-                    } 
+                    if (x % 2 == 1 && y % 2 == 1 && !t.solid && !t.entity) {
+                        if (Math.random() > 0.92) {
+                            this.state?.entities.addEntity(
+                                "enemy" + x + "," + y,
+                                new FollowerEntity([x, y], this.state!),
+                                this.state,
+                            );
+                        } else if (Math.random() > 0.9) {
+                            this.state?.entities.addEntity(
+                                "ray" + x + "," + y,
+                                new RatEntity([x, y]),
+                                this.state,
+                            );
+                        }
+                    }
 
-                    if(t.type == "door"){
+                    if (t.type == "door") {
                         // TODO introduce some sort of unnamed entity
                         if (t.items && t.items.door && t.items.door !== "open") {
                             this.state?.entities.addEntity(

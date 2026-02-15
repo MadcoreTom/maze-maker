@@ -14,10 +14,10 @@ export function createParallelAnimation(animations: ActionAnimation[]): ActionAn
 }
 
 // TODO move to animation file or folder
-export function walkAnimation(dx: number, dy: number, entity: Entity): ActionAnimation {
+export function walkAnimation(dx: number, dy: number, entity: Entity, timeMs:number = 300): ActionAnimation {
     let progress = 0;
     return (delta: number, state: State) => {
-        progress += delta / 300;
+        progress += delta / timeMs;
         const sprite = entity.getSprite();
         if (!sprite) return false;
 
