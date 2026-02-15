@@ -32,6 +32,8 @@ export class RoomLayer extends LayerLogic {
 
     private pickRoom(state: State, maxWidth: number, maxHeight: number): Rect & { roomId: number } {
         const attempts = 20;
+        maxWidth = Math.min(maxWidth,Math.floor(state.maze.w/2-1));
+        maxHeight = Math.min(maxHeight,Math.floor(state.maze.h/2-1));
         let w = 0;
         let h = 0;
         let x = 0;
@@ -43,8 +45,8 @@ export class RoomLayer extends LayerLogic {
             tryAgain = false;
             w = 3 + 2 * Math.floor(Math.random() * maxWidth);
             h = 3 + 2 * Math.floor(Math.random() * maxHeight);
-            x = 1 + 2 * Math.floor(Math.random() * (state.maze.w / 2 - w));
-            y = 1 + 2 * Math.floor(Math.random() * (state.maze.h / 2 - h));
+            x = 1 + 2 * Math.floor(Math.random() * (Math.max(0,state.maze.w / 2 - w)));
+            y = 1 + 2 * Math.floor(Math.random() * (Math.max(0,state.maze.h / 2 - h))); // h = 5, minimum is 1 + 2 * floor(1 * 5 / 2 - 3) = 1+2*floor(-0.5) = 1-2
             console.log("Attempt", x, y, w, h);
             // find any neighbouring rooms
             state.maze.forEachRect(
@@ -77,7 +79,6 @@ export class RoomLayer extends LayerLogic {
             for (let i = 0; i < count; i++) {
                 // Pick a random location
                 const rect = me.pickRoom(state, wr, hr);
-                console.log("R", rect);
                 const roomIdsToReplace:Set<number> = new Set();
                 // set all the rooms
                 state.maze.forEach((xx, yy, t) => {
