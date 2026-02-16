@@ -7,8 +7,7 @@ export function createParallelAnimation(animations: ActionAnimation[]): ActionAn
     let anim = [...animations];
     return (delta: number, state: State) => {
         // run each and remove what's empty
-        anim = animations.filter(a => !a(delta, state));
-        console.log("Animations pending", anim.length);
+        anim = anim.filter(a => !a(delta, state));
         return anim.length === 0;
     };
 }

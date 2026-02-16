@@ -49,7 +49,7 @@ export class GameComponent extends HTMLElement {
         // L1.params.filter(p => p.name == "Height").forEach(p => (p.value = 21));
         applyParams([
             {
-                "Width": 31,
+                "Width": 15,
                 "Height": 9
             },
             {
@@ -254,6 +254,26 @@ export class GameComponent extends HTMLElement {
         if (this.state && this.state.triggerNewLevel) {
             this.state = undefined;
 
+            // make the level bigger
+            applyParams([
+                {
+                    "Width": L1.params.filter(p => p.name == "Width")[0].value + 2,
+                    "Height": L1.params.filter(p => p.name == "Height")[0].value + 4
+                },
+                {
+                    "Rooms": 3,
+                    "Width Range": 3,
+                    "Height Range": 2
+                },
+                {},
+                {
+                    "iterations": 1
+                },
+                {},
+                {},
+                {},
+                {}
+            ]);
             this.curLayer = L1;
             this.curLayer!.init(createInitialState());
             this.curGenerator = this.curLayer!.apply()();

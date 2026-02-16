@@ -62,6 +62,15 @@ export abstract class Entity {
     public die() {
         this.dead = true;
     }
+
+    protected canMove(state: State, x: number, y: number, dx: number, dy: number): { wall?: Tile, tile?: Tile, okay: boolean } {
+        const [tile, wall] = state.maze.getKernel([x, y], [[dx * 2, dy * 2], [dx, dy]]);
+        return {
+            wall,
+            tile,
+            okay: !!(wall && !wall.solid && tile && !tile.solid)
+        }
+    }
 }
 
 // Test the idea of implementation
@@ -140,7 +149,7 @@ export class FollowerEntity extends Entity {
     }
 
     public getAction(state: State, direction: ActionDirection): Action | undefined {
-        return new CollectAction("bones",this,direction);
+        return new CollectAction("bones", this, direction);
     }
 
     public onTurn(state: State): ActionAnimation | undefined {
@@ -181,17 +190,17 @@ export class FollowerEntity extends Entity {
 }
 
 export class DoorEntity extends Entity {
-    public constructor(tile:XY, private readonly mode: "open" | "locked" | "closed"){
+    public constructor(tile: XY, private readonly mode: "open" | "locked" | "closed") {
         super(tile);
     }
 
     public getAction(state: State, direction: ActionDirection): Action | undefined {
-        if(this.mode == "open"){
+        if (this.mode == "open") {
             return undefined;
-        } else if(this.mode == "closed"){
+        } else if (this.mode == "closed") {
             return new OpenDoorAction(direction);
         } else {
-            if(state.inventory.indexOf("key") >= 0){
+            if (state.inventory.indexOf("key") >= 0) {
                 return new OpenDoorAction(direction, "Unlock");
             }
             return new NoopAction("REQUIRES KEY", direction);

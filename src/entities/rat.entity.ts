@@ -1,7 +1,7 @@
 import { ActionDirection, Action, WalkAction } from "../action";
 import { ActionAnimation, walkAnimation } from "../animation";
 import { State } from "../state";
-import { XY } from "../util/xy";
+import { cloneXY, XY } from "../util/xy";
 import { Entity } from "./entity";
 
 const SPEED_MS = 150;
@@ -27,18 +27,18 @@ export class RatEntity extends Entity {
         if (!t || !t.discovered) {
             return undefined;
         }
-        const [left, leftWall, rightWall, right] = state.maze.getKernel([x, y], [[-2, 0], [ - 1, 0], [ 1, 0], [ 2, 0]]);
-        const canGoLeft = leftWall && !leftWall.solid && left && !left.solid;
-        const canGoRight = rightWall && !rightWall.solid && right && !right.solid;
 
-        if (canGoLeft) {
-            if (canGoRight) {
+        const left = this.canMove(state, x, y, -1, 0);
+        const right = this.canMove(state, x, y, 1, 0);
+
+        if (left.okay) {
+            if (right.okay) {
                 return walkAnimation(Math.random() >= 0.5 ? -1 : 1, 0, this, SPEED_MS);
             } else {
                 return walkAnimation(-1, 0, this, SPEED_MS);
             }
         } else {
-            if (canGoRight) {
+            if (right.okay) {
                 return walkAnimation(1, 0, this, SPEED_MS);
             } else {
                 return undefined;
