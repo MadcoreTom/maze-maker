@@ -24,18 +24,22 @@ export abstract class Entity {
             const newTile = state.maze.get(newPos[0], newPos[1]);
 
             // Check if there's already an entity at the new position
-            if (newTile?.entity && newTile.entity !== this) {
+            if (newTile?.entities && newTile.entities.indexOf(this) >= 0) {
                 console.warn(`Entity moving to tile [${newPos[0]}, ${newPos[1]}] but there's already an entity there`);
             }
 
             // Deregister this entity from the old tile
-            if (oldTile?.entity === this) {
-                oldTile.entity = undefined;
+            if (oldTile?.entities && oldTile.entities.indexOf(this) >= 0) {
+                oldTile.entities = oldTile.entities.filter(e=>e!=this);
             }
 
             // Register this entity to the new tile
             if (newTile) {
-                newTile.entity = this;
+                if(newTile.entities && newTile.entities.indexOf(this) <0){
+                    newTile.entities.push(this);
+                } else {
+                    newTile.entities = [this];
+                }
             }
 
             // Update the entity's internal tile position
@@ -190,7 +194,7 @@ export class FollowerEntity extends Entity {
 }
 
 export class DoorEntity extends Entity {
-    public constructor(tile: XY, private readonly mode: "open" | "locked" | "closed") {
+    public constructor(tile: XY, public mode: "open" | "locked" | "closed") {
         super(tile);
     }
 
@@ -198,10 +202,10 @@ export class DoorEntity extends Entity {
         if (this.mode == "open") {
             return undefined;
         } else if (this.mode == "closed") {
-            return new OpenDoorAction(direction);
+            return new OpenDoorAction(direction, undefined, this);
         } else {
             if (state.inventory.indexOf("key") >= 0) {
-                return new OpenDoorAction(direction, "Unlock");
+                return new OpenDoorAction(direction, "Unlock", this);
             }
             return new NoopAction("REQUIRES KEY", direction);
         }

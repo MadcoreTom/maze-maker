@@ -1,5 +1,5 @@
 import { type ActionAnimation, collectAnimation, walkAnimation } from "./animation";
-import type { Entity } from "./entities/entity";
+import type { DoorEntity, Entity } from "./entities/entity";
 import type { Sprite, State } from "./state";
 import { addXY, type XY } from "./util/xy";
 
@@ -63,7 +63,7 @@ export class CollectAction extends Action {
 }
 
 export class OpenDoorAction extends Action {
-    public constructor( direction: ActionDirection, displayName:string = "Open Door") {
+    public constructor( direction: ActionDirection, displayName:string = "Open Door", private readonly entity: DoorEntity) {
         super(displayName, direction);
     }
 
@@ -73,12 +73,12 @@ export class OpenDoorAction extends Action {
             const playerTile = playerEntity.getTile();
             const tile = state.maze.get(playerTile[0] + this.direction[0], playerTile[1] + this.direction[1]);
             
-            if(tile && tile.entity && tile.items){
+            if(tile  && tile.items){
                 tile.solid = false;
                 tile.items.door = "open";
                 console.log("open")
-                tile.entity["mode"] = "open"; // TODO make it a public property or setter
             }
+            this.entity.mode = "open";
         }
     }
 }
@@ -100,9 +100,9 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
     // check entities on the wall
     if (result[0]) {
         const targetPosition = addXY(coords, kernel[0]);
-        const targetEntity = state.maze.get(targetPosition[0], targetPosition[1])?.entity;
-        if (targetEntity) {
-            const action = targetEntity.getAction(state, [dx,dy] as ActionDirection);
+        const targetEntities= state.maze.get(targetPosition[0], targetPosition[1])?.entities;
+        if (targetEntities) {
+            const action = targetEntities.map(e=>e.getAction(state, [dx,dy] as ActionDirection)).filter(a=>!!a)[0];
             if (action) {
                 return action;
             }
@@ -113,9 +113,9 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
     if (result[0] && !result[0].solid && result[1] ) {
 
         const targetPosition = addXY(coords, kernel[1]);
-        const targetEntity = state.maze.get(targetPosition[0], targetPosition[1])?.entity;
-        if (targetEntity) {
-            const action = targetEntity.getAction(state, [dx,dy] as ActionDirection);
+        const targetEntities= state.maze.get(targetPosition[0], targetPosition[1])?.entities;
+        if (targetEntities) {
+            const action = targetEntities.map(e=>e.getAction(state, [dx,dy] as ActionDirection)).filter(a=>!!a)[0];
             if (action) {
                 return action;
             }

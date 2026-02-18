@@ -375,7 +375,10 @@ export class GameComponent extends HTMLElement {
                         const e = new KeyEntity([x, y], this.state!);
                         this.state!.entities.addEntity("key", e, this.state!);
 
-                        t.entity = e;
+                        if(!t.entities){
+                            t.entities = [];
+                        }
+                        t.entities.push(e);
                     }
                 });
 

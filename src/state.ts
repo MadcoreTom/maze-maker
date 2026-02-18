@@ -18,7 +18,7 @@ export type Tile = {
     visDistance: number;
     discovered?: boolean;
     discoveredBottom?: boolean;
-    entity?: Entity;
+    entities: Entity[];
 };
 
 export type State = {

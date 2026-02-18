@@ -1,6 +1,6 @@
 import type { State } from "../state";
 import { cloneXY, equalsXY, type XY } from "../util/xy";
-import type { Entity } from "./entity";
+import { EndEntity, type Entity } from "./entity";
 
 export class Entities {
     private entityMap: { [name: string]: Entity } = {};
@@ -12,7 +12,11 @@ export class Entities {
         this.entityList.push(entity);
         const t = state.maze.get(entity.getTile()[0], entity.getTile()[1]);
         if (t) {
-            t.entity = entity;
+            if(t.entities){
+                t.entities.push(entity);
+            } else{
+                t.entities = [entity];
+            }
         } else {
             console.warn("Entity added off the edge of the map", entity.getTile());
         }
@@ -28,9 +32,8 @@ export class Entities {
             // Remove from tile
             const tile = entity.getTile();
             const t = state.maze.get(tile[0], tile[1]);
-            if (t && t.entity === entity) {
-                console.log("Removed entity of type ", typeof entity, "from", tile, t);
-                t.entity = undefined;
+            if (t && t.entities) {
+                t.entities = t.entities.filter(e=> e!=entity);
             }
 
             delete this.entityMap[name];
