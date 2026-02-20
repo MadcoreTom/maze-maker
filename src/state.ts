@@ -39,6 +39,7 @@ export type State = {
     triggerNewLevel?: boolean;
     inventory: string[];
     phase: "READY" | "PLAYER_ANIM" | "WORLD_ANIM"; // TODO use enum
+    hudText: string;
 };
 
 // Note: this is a funny style, but avoids scanning arrays
@@ -79,6 +80,7 @@ export function createInitialState(): State {
         visTimestamp: 0,
         inventory: [],
         phase: "READY",
+        hudText: ""
     };
 }
 

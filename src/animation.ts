@@ -75,3 +75,49 @@ export function collectAnimation(dx: number, dy: number, player: Entity, item: E
         return false;
     };
 }
+
+// fight
+// fighter moves towards
+// hud shows
+// animate random selection
+// 
+export function createFightAnimation():ActionAnimation{
+    // return createSequentialAnimation(
+        // go together
+    // )
+    const point1 = [1,2,3];
+    const point2 = [0,3,4]
+    let progress = 0;
+    let randomizeCounter = 100;
+    return (delta: number, state: State) => {
+        progress += delta / 300;
+        randomizeCounter += delta;
+
+        if(randomizeCounter >= 100){
+            randomizeCounter -= 100;
+
+            const p1 = Math.floor(Math.random() * 3);
+            const p2 = Math.floor(Math.random() * 3);
+    
+            state.hudText = point1.map((p,i)=>i==p1 ? `[${p}]` : ` ${p} `).join("");
+            state.hudText += " vs ";
+            state.hudText += point2.map((p,i)=>i==p2 ? `[${p}]` : ` ${p} `).join("")
+    
+        }
+
+        if (progress > 10){
+            const p1 = Math.floor(Math.random() * 3);
+            const p2 = Math.floor(Math.random() * 3);
+
+            const v1 = point1[p1];
+            const v2 = point2[p2];
+            const ch = (v1 > v2 ? " > " : (v1 < v2 ? " < " : " x "))
+    
+            state.hudText = point1.map((p,i)=>i==p1 ? `[${p}]` : ` ${p} `).join("");
+            state.hudText += ch;
+            state.hudText += point2.map((p,i)=>i==p2 ? `[${p}]` : ` ${p} `).join("")
+            return true;
+        }
+        return false;
+    }
+}

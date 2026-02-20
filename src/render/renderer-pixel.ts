@@ -216,5 +216,9 @@ export class PixelRenderer implements Renderer {
         });
 
         ctx.restore();
+
+        // temp hud
+        ctx.fillStyle = "yellow";
+        ctx.fillText(state.hudText, 2, 10);
     }
 }

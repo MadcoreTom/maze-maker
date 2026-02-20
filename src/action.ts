@@ -1,4 +1,4 @@
-import { type ActionAnimation, collectAnimation, walkAnimation } from "./animation";
+import { type ActionAnimation, collectAnimation, createFightAnimation, walkAnimation } from "./animation";
 import type { DoorEntity, Entity } from "./entities/entity";
 import type { Sprite, State } from "./state";
 import { addXY, type XY } from "./util/xy";
@@ -61,6 +61,26 @@ export class CollectAction extends Action {
         return collectAnimation(this.direction[0],this.direction[1],state.entities.getEntityByName("player"), this.targetEntity);
     }
 }
+
+export class FightAction extends Action {
+    public constructor(
+        private readonly e1: Entity,
+        private readonly e2: Entity,
+        direction: ActionDirection
+    ) {
+        super("Fight", direction);
+    }
+
+    public onClick(state: State): void {
+        
+    }
+
+    public getAnimation(state: State): null | ActionAnimation {
+        return createFightAnimation();
+        // return collectAnimation(this.direction[0],this.direction[1],state.entities.getEntityByName("player"), this.targetEntity);
+    }
+}
+
 
 export class OpenDoorAction extends Action {
     public constructor( direction: ActionDirection, displayName:string = "Open Door", private readonly entity: DoorEntity) {

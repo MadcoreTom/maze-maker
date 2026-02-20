@@ -390,7 +390,7 @@ export class GameComponent extends HTMLElement {
         if (this.ctx && this.state) {
             this.ctx.fillStyle = "cyan";
             this.state.inventory.forEach((name,idx)=>{
-                this.ctx!.fillText(name, 10, 10 + 10 * idx);
+                this.ctx!.fillText(name, 10, 30 + 10 * idx);
             })
             
         }

@@ -1,4 +1,4 @@
-import { type Action, ActionDirection, CollectAction, EndAction, NoopAction, OpenDoorAction } from "../action";
+import { type Action, ActionDirection, CollectAction, EndAction, FightAction, NoopAction, OpenDoorAction } from "../action";
 import { type ActionAnimation, walkAnimation } from "../animation";
 import type { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
@@ -153,7 +153,7 @@ export class FollowerEntity extends Entity {
     }
 
     public getAction(state: State, direction: ActionDirection): Action | undefined {
-        return new CollectAction("bones", this, direction);
+        return new FightAction(state.entities.getEntityByName("player") as Entity, this, direction);
     }
 
     public onTurn(state: State): ActionAnimation | undefined {
