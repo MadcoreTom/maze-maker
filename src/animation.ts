@@ -81,12 +81,12 @@ export function collectAnimation(dx: number, dy: number, player: Entity, item: E
 // hud shows
 // animate random selection
 // 
-export function createFightAnimation():ActionAnimation{
+export function createFightAnimation(a:Entity, b:Entity):ActionAnimation{
     // return createSequentialAnimation(
         // go together
     // )
-    const point1 = [1,2,3];
-    const point2 = [0,3,4]
+    const point1 = [2,4,5];
+    const point2 = [1,2,3];
     let progress = 0;
     let randomizeCounter = 100;
     return (delta: number, state: State) => {
@@ -116,6 +116,13 @@ export function createFightAnimation():ActionAnimation{
             state.hudText = point1.map((p,i)=>i==p1 ? `[${p}]` : ` ${p} `).join("");
             state.hudText += ch;
             state.hudText += point2.map((p,i)=>i==p2 ? `[${p}]` : ` ${p} `).join("")
+
+            if(ch == " > "){
+                b.die();
+            } else if(ch == " < "){
+               a.die();
+            }
+            // tODO if the palyer dies its game over
             return true;
         }
         return false;

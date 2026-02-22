@@ -8,7 +8,7 @@ import { PixelRenderer } from "../render/renderer-pixel";
 import { createInitialState, type State } from "../state";
 import type { MyGenerator } from "../types";
 import { calcVisibility } from "../util/distance";
-import { type XY } from "../util/xy";
+import type { XY } from "../util/xy";
 
 enum Control {
     UP,
@@ -49,22 +49,22 @@ export class GameComponent extends HTMLElement {
         // L1.params.filter(p => p.name == "Height").forEach(p => (p.value = 21));
         applyParams([
             {
-                "Width": 15,
-                "Height": 9
+                Width: 15,
+                Height: 9,
             },
             {
-                "Rooms": 3,
+                Rooms: 3,
                 "Width Range": 3,
-                "Height Range": 2
+                "Height Range": 2,
             },
             {},
             {
-                "iterations": 1
+                iterations: 1,
             },
             {},
             {},
             {},
-            {}
+            {},
         ]);
 
         this.elements = {
@@ -202,6 +202,7 @@ export class GameComponent extends HTMLElement {
         // TODO process this in a different phase of animation
         // TOOD only process discovered ones
         const animations: ActionAnimation[] = [];
+        this.state.entities.removeDeadEntities(this.state);
         this.state.entities.forEachEntity(e => {
             const a = e.onTurn(this.state!);
             if (a) {
@@ -224,7 +225,6 @@ export class GameComponent extends HTMLElement {
         if (!this.state) {
             return;
         }
-        this.state.entities.removeDeadEntities(this.state);
         this.state.actions = calculateAllActions(this.state);
 
         // TODO move this to its own place
@@ -257,22 +257,22 @@ export class GameComponent extends HTMLElement {
             // make the level bigger
             applyParams([
                 {
-                    "Width": L1.params.filter(p => p.name == "Width")[0].value + 2,
-                    "Height": L1.params.filter(p => p.name == "Height")[0].value + 4
+                    Width: L1.params.filter(p => p.name == "Width")[0].value + 2,
+                    Height: L1.params.filter(p => p.name == "Height")[0].value + 4,
                 },
                 {
-                    "Rooms": 3,
+                    Rooms: 3,
                     "Width Range": 3,
-                    "Height Range": 2
+                    "Height Range": 2,
                 },
                 {},
                 {
-                    "iterations": 1
+                    iterations: 1,
                 },
                 {},
                 {},
                 {},
-                {}
+                {},
             ]);
             this.curLayer = L1;
             this.curLayer!.init(createInitialState());
@@ -330,30 +330,21 @@ export class GameComponent extends HTMLElement {
                 // last generator step
                 const pos: XY = this.state.start || [1, 1];
 
-                this.state.entities.addEntity("player", new PlayerEntity(pos, this.state!), this.state!);
+                this.state.entities.addEntity(new PlayerEntity(pos, this.state!, "player"), this.state!);
                 this.state.start &&
                     this.state.entities.addEntity(
-                        "start",
-                        new StaticEntity(this.state.start, this.state!, "start"),
+                        new StaticEntity(this.state.start, this.state!, "start", "start"),
                         this.state!,
                     );
                 this.state.end &&
-                    this.state.entities.addEntity("end", new EndEntity(this.state.end, this.state!), this.state!);
+                    this.state.entities.addEntity(new EndEntity(this.state.end, this.state!, "end"), this.state!);
 
                 this.state.maze.forEach((x, y, t) => {
-                    if (x % 2 == 1 && y % 2 == 1 && !t.solid && !t.entity) {
+                    if (x % 2 == 1 && y % 2 == 1 && !t.solid && (!t.entities || t.entities.length == 0)) {
                         if (Math.random() > 0.92) {
-                            this.state?.entities.addEntity(
-                                "enemy" + x + "," + y,
-                                new FollowerEntity([x, y], this.state!),
-                                this.state,
-                            );
+                            this.state?.entities.addEntity(new FollowerEntity([x, y], this.state!), this.state);
                         } else if (Math.random() > 0.9) {
-                            this.state?.entities.addEntity(
-                                "ray" + x + "," + y,
-                                new RatEntity([x, y]),
-                                this.state,
-                            );
+                            this.state?.entities.addEntity(new RatEntity([x, y]), this.state);
                         }
                     }
 
@@ -361,8 +352,10 @@ export class GameComponent extends HTMLElement {
                         // TODO introduce some sort of unnamed entity
                         if (t.items && t.items.door && t.items.door !== "open") {
                             this.state?.entities.addEntity(
-                                "door" + x + "," + y,
-                                new DoorEntity([x, y], t.items && t.items.door && t.items.door == "closed" ? "closed" : "locked"),
+                                new DoorEntity(
+                                    [x, y],
+                                    t.items && t.items.door && t.items.door == "closed" ? "closed" : "locked",
+                                ),
                                 this.state,
                             );
                         }
@@ -372,10 +365,10 @@ export class GameComponent extends HTMLElement {
                 // Find the tile with the "key" item and add an entity
                 this.state.maze.forEach((x, y, t) => {
                     if (t.items && t.items.key) {
-                        const e = new KeyEntity([x, y], this.state!);
-                        this.state!.entities.addEntity("key", e, this.state!);
+                        const e = new KeyEntity([x, y], this.state!, "key");
+                        this.state!.entities.addEntity(e, this.state!);
 
-                        if(!t.entities){
+                        if (!t.entities) {
                             t.entities = [];
                         }
                         t.entities.push(e);
@@ -389,10 +382,9 @@ export class GameComponent extends HTMLElement {
 
         if (this.ctx && this.state) {
             this.ctx.fillStyle = "cyan";
-            this.state.inventory.forEach((name,idx)=>{
+            this.state.inventory.forEach((name, idx) => {
                 this.ctx!.fillText(name, 10, 30 + 10 * idx);
-            })
-            
+            });
         }
 
         this.lastFrameTime = time;

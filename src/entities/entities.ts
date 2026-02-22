@@ -1,20 +1,21 @@
 import type { State } from "../state";
-import { cloneXY, equalsXY, type XY } from "../util/xy";
-import { EndEntity, type Entity } from "./entity";
+import type { Entity } from "./entity";
 
 export class Entities {
     private entityMap: { [name: string]: Entity } = {};
     private entityList: Entity[] = [];
 
-    public addEntity(name: string, entity: Entity, state: State) {
-        this.entityMap[name] = entity;
-        // TODO check for name collisions
+    public addEntity(entity: Entity, state: State) {
+        const entityName = entity.name;
+        if (entityName) {
+            this.entityMap[entityName] = entity;
+        }
         this.entityList.push(entity);
         const t = state.maze.get(entity.getTile()[0], entity.getTile()[1]);
         if (t) {
-            if(t.entities){
+            if (t.entities) {
                 t.entities.push(entity);
-            } else{
+            } else {
                 t.entities = [entity];
             }
         } else {
@@ -26,34 +27,33 @@ export class Entities {
         return this.entityMap[name];
     }
 
-    public removeEntityByName(name: string, state: State): boolean {
-        const entity = this.entityMap[name];
-        if (entity) {
-            // Remove from tile
-            const tile = entity.getTile();
-            const t = state.maze.get(tile[0], tile[1]);
-            if (t && t.entities) {
-                t.entities = t.entities.filter(e=> e!=entity);
-            }
-
-            delete this.entityMap[name];
-            const index = this.entityList.indexOf(entity);
-            if (index > -1) {
-                this.entityList.splice(index, 1);
-                return true;
-            }
+    private removeEntity(entity: Entity, state: State): void {
+        const l1 = this.entityList.length;
+        this.entityList = this.entityList.filter(e => e !== entity);
+        console.log("Removed from list", l1 != this.entityList.length);
+        const k = Object.entries(this.entityMap)
+            .map(([k, v]) => (v === entity ? k : null))
+            .filter(n => !!n)[0];
+        if (k) {
+            this.entityMap[k] = undefined;
+            console.log("Removed from map");
         }
-        return false;
-    }
-
-    public removeEntity(entity: Entity, state: State): boolean {
-        // Find the name for this entity in the map
-        for (const [name, e] of Object.entries(this.entityMap)) {
-            if (e === entity) {
-                return this.removeEntityByName(name, state);
-            }
+        const t = entity.getTile();
+        if (t) {
+            state.maze.doIf(t[0], t[1], (x, y, t) => {
+                if (t.entities) {
+                    const idx = t.entities.indexOf(entity);
+                    if (idx >= 0) {
+                        t.entities.splice(idx, 1);
+                        console.log("Removed from tile", true);
+                    } else {
+                        console.warn("Entity not found in tile entities:", entity.name);
+                    }
+                } else {
+                    console.warn("Tile has no entities array:", entity.name);
+                }
+            });
         }
-        return false;
     }
 
     public forEachEntity(callback: (entity: Entity) => unknown): void {

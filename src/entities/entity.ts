@@ -1,4 +1,12 @@
-import { type Action, ActionDirection, CollectAction, EndAction, FightAction, NoopAction, OpenDoorAction } from "../action";
+import {
+    type Action,
+    type ActionDirection,
+    CollectAction,
+    EndAction,
+    FightAction,
+    NoopAction,
+    OpenDoorAction,
+} from "../action";
 import { type ActionAnimation, walkAnimation } from "../animation";
 import type { Sprite, State, Tile } from "../state";
 import { KERNEL_UDLR } from "../util/distance";
@@ -8,9 +16,11 @@ export abstract class Entity {
     private tile: XY;
     protected sprite?: Sprite;
     private dead: boolean = false;
+    public readonly name?: string;
 
-    public constructor(tile: XY) {
+    public constructor(tile: XY, name?: string) {
         this.tile = cloneXY(tile);
+        this.name = name;
     }
 
     public getTile(): XYReadOnly {
@@ -23,19 +33,17 @@ export abstract class Entity {
             const oldTile = state.maze.get(this.tile[0], this.tile[1]);
             const newTile = state.maze.get(newPos[0], newPos[1]);
 
-            // Check if there's already an entity at the new position
-            if (newTile?.entities && newTile.entities.indexOf(this) >= 0) {
-                console.warn(`Entity moving to tile [${newPos[0]}, ${newPos[1]}] but there's already an entity there`);
-            }
-
             // Deregister this entity from the old tile
             if (oldTile?.entities && oldTile.entities.indexOf(this) >= 0) {
-                oldTile.entities = oldTile.entities.filter(e=>e!=this);
+                const idx = oldTile.entities.indexOf(this);
+                oldTile.entities.splice(idx, 1);
+            } else if (oldTile?.entities) {
+                console.warn("Entity not found in oldTile when moving:", this.name);
             }
 
             // Register this entity to the new tile
             if (newTile) {
-                if(newTile.entities && newTile.entities.indexOf(this) <0){
+                if (newTile.entities && newTile.entities.indexOf(this) < 0) {
                     newTile.entities.push(this);
                 } else {
                     newTile.entities = [this];
@@ -67,21 +75,33 @@ export abstract class Entity {
         this.dead = true;
     }
 
-    protected canMove(state: State, x: number, y: number, dx: number, dy: number): { wall?: Tile, tile?: Tile, okay: boolean } {
-        const [tile, wall] = state.maze.getKernel([x, y], [[dx * 2, dy * 2], [dx, dy]]);
+    protected canMove(
+        state: State,
+        x: number,
+        y: number,
+        dx: number,
+        dy: number,
+    ): { wall?: Tile; tile?: Tile; okay: boolean } {
+        const [tile, wall] = state.maze.getKernel(
+            [x, y],
+            [
+                [dx * 2, dy * 2],
+                [dx, dy],
+            ],
+        );
         return {
             wall,
             tile,
-            okay: !!(wall && !wall.solid && tile && !tile.solid)
-        }
+            okay: !!(wall && !wall.solid && tile && !tile.solid),
+        };
     }
 }
 
 // Test the idea of implementation
 
 export class KeyEntity extends Entity {
-    constructor(tile: XY, state: State) {
-        super(tile, state);
+    constructor(tile: XY, state: State, name?: string) {
+        super(tile, name);
         this.sprite = {
             offset: [0, 0],
             sprite: "key",
@@ -94,8 +114,8 @@ export class KeyEntity extends Entity {
 }
 
 export class PlayerEntity extends Entity {
-    constructor(tile: XY, state: State) {
-        super(tile);
+    constructor(tile: XY, state: State, name?: string) {
+        super(tile, name);
         this.sprite = {
             offset: [0, 0],
             sprite: { left: 0, top: 0, width: 16, height: 12 },
@@ -104,8 +124,8 @@ export class PlayerEntity extends Entity {
 }
 
 export class StaticEntity extends Entity {
-    constructor(tile: XY, state: State, sprite: string | Rect) {
-        super(tile);
+    constructor(tile: XY, state: State, sprite: string | Rect, name?: string) {
+        super(tile, name);
         this.sprite = {
             offset: [0, 0],
             sprite: sprite,
@@ -114,8 +134,8 @@ export class StaticEntity extends Entity {
 }
 
 export class EndEntity extends Entity {
-    constructor(tile: XY, state: State) {
-        super(tile);
+    constructor(tile: XY, state: State, name?: string) {
+        super(tile, name);
         this.sprite = {
             offset: [0, 0],
             sprite: "end",
@@ -138,8 +158,8 @@ const KERNEL_UDLR2: XY[] = [
 ];
 
 export class FollowerEntity extends Entity {
-    constructor(tile: XY, state: State) {
-        super(tile);
+    constructor(tile: XY, state: State, name?: string) {
+        super(tile, name);
         this.sprite = {
             offset: [0, 0],
             sprite: "imp",
@@ -194,8 +214,12 @@ export class FollowerEntity extends Entity {
 }
 
 export class DoorEntity extends Entity {
-    public constructor(tile: XY, public mode: "open" | "locked" | "closed") {
-        super(tile);
+    public constructor(
+        tile: XY,
+        public mode: "open" | "locked" | "closed",
+        name?: string,
+    ) {
+        super(tile, name);
     }
 
     public getAction(state: State, direction: ActionDirection): Action | undefined {

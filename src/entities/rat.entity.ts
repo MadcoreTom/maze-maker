@@ -1,14 +1,14 @@
-import { ActionDirection, Action, WalkAction } from "../action";
-import { ActionAnimation, walkAnimation } from "../animation";
-import { State } from "../state";
-import { cloneXY, XY } from "../util/xy";
+import { type Action, type ActionDirection, WalkAction } from "../action";
+import { type ActionAnimation, walkAnimation } from "../animation";
+import type { State } from "../state";
+import { cloneXY, type XY } from "../util/xy";
 import { Entity } from "./entity";
 
 const SPEED_MS = 150;
 
 export class RatEntity extends Entity {
-    constructor(tile: XY) {
-        super(tile);
+    constructor(tile: XY, name?: string) {
+        super(tile, name);
         this.sprite = {
             offset: [0, 0],
             sprite: "rat",

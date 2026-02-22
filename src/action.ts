@@ -6,7 +6,10 @@ import { addXY, type XY } from "./util/xy";
 export type ActionDirection = [-1, 0] | [1, 0] | [0, -1] | [0, 1];
 
 export abstract class Action {
-    public constructor(public readonly displayName: string, protected readonly direction: ActionDirection) {}
+    public constructor(
+        public readonly displayName: string,
+        protected readonly direction: ActionDirection,
+    ) {}
     public onClick(state: State): void {}
     public getAnimation(state: State): null | ActionAnimation {
         return null;
@@ -14,7 +17,7 @@ export abstract class Action {
 }
 
 export class WalkAction extends Action {
-    public constructor( direction: ActionDirection) {
+    public constructor(direction: ActionDirection) {
         let displayName = "";
         if (direction[0] < 0) {
             displayName = "< WALK";
@@ -36,7 +39,7 @@ export class WalkAction extends Action {
 
 export class EndAction extends Action {
     constructor(direction: ActionDirection) {
-        super("Next Level",direction);
+        super("Next Level", direction);
     }
     public onClick(state: State): void {
         state.triggerNewLevel = true;
@@ -46,7 +49,8 @@ export class EndAction extends Action {
 export class CollectAction extends Action {
     public constructor(
         private readonly itemName: string,
-        private readonly targetEntity: Entity,direction: ActionDirection
+        private readonly targetEntity: Entity,
+        direction: ActionDirection,
     ) {
         super(`Collect ${itemName}`, direction);
     }
@@ -58,7 +62,12 @@ export class CollectAction extends Action {
     }
 
     public getAnimation(state: State): null | ActionAnimation {
-        return collectAnimation(this.direction[0],this.direction[1],state.entities.getEntityByName("player"), this.targetEntity);
+        return collectAnimation(
+            this.direction[0],
+            this.direction[1],
+            state.entities.getEntityByName("player") as Entity,
+            this.targetEntity,
+        );
     }
 }
 
@@ -66,24 +75,25 @@ export class FightAction extends Action {
     public constructor(
         private readonly e1: Entity,
         private readonly e2: Entity,
-        direction: ActionDirection
+        direction: ActionDirection,
     ) {
         super("Fight", direction);
     }
 
-    public onClick(state: State): void {
-        
-    }
+    public onClick(state: State): void {}
 
     public getAnimation(state: State): null | ActionAnimation {
-        return createFightAnimation();
+        return createFightAnimation(this.e1, this.e2);
         // return collectAnimation(this.direction[0],this.direction[1],state.entities.getEntityByName("player"), this.targetEntity);
     }
 }
 
-
 export class OpenDoorAction extends Action {
-    public constructor( direction: ActionDirection, displayName:string = "Open Door", private readonly entity: DoorEntity) {
+    public constructor(
+        direction: ActionDirection,
+        displayName: string = "Open Door",
+        private readonly entity: DoorEntity,
+    ) {
         super(displayName, direction);
     }
 
@@ -92,11 +102,11 @@ export class OpenDoorAction extends Action {
         if (playerEntity) {
             const playerTile = playerEntity.getTile();
             const tile = state.maze.get(playerTile[0] + this.direction[0], playerTile[1] + this.direction[1]);
-            
-            if(tile  && tile.items){
+
+            if (tile && tile.items) {
                 tile.solid = false;
                 tile.items.door = "open";
-                console.log("open")
+                console.log("open");
             }
             this.entity.mode = "open";
         }
@@ -137,19 +147,35 @@ export function calculateAvailableAction(state: State, dx: number, dy: number): 
         if (targetEntities) {
             const action = targetEntities.map(e=>e.getAction(state, [dx,dy] as ActionDirection)).filter(a=>!!a)[0];
             if (action) {
+                console.log("ENT", targetEntities, targetEntities.map(e=>state.entities["entityList"].indexOf(e)))
                 return action;
             }
         }
-        if(!result[1].solid){
+    }
+
+    // if the wall isnt solid and has no entity, cehck the actual tile
+    if (result[0] && !result[0].solid && result[1]) {
+        const targetPosition = addXY(coords, kernel[1]);
+        const targetEntities = state.maze.get(targetPosition[0], targetPosition[1])?.entities;
+        if (targetEntities) {
+            const aliveTargetEntities = targetEntities.filter(e => !e.isDead());
+            const action = aliveTargetEntities
+                .map(e => e.getAction(state, [dx, dy] as ActionDirection))
+                .filter(a => !!a)[0];
+            if (action) {
+                return action;
+            }
+        }
+        if (!result[1].solid) {
             return new WalkAction([dx, dy] as ActionDirection);
         }
     }
-        
+
     return null;
 }
 
 export class NoopAction extends Action {
-    public constructor( displayName: string, direction: ActionDirection) {
+    public constructor(displayName: string, direction: ActionDirection) {
         super(displayName, direction);
     }
 }
@@ -160,6 +186,7 @@ export function calculateAllActions(state: State): {
     up: Action | null;
     down: Action | null;
 } {
+    state.entities.removeDeadEntities(state);
     return {
         left: calculateAvailableAction(state, -1, 0),
         right: calculateAvailableAction(state, 1, 0),
