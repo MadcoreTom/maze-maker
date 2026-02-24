@@ -12,13 +12,13 @@ export function placeEntities(state: State): void {
     state.end && state.entities.addEntity(new EndEntity(state.end, state, "end"), state);
 
     state.maze.forEach((x, y, t) => {
-        if (x % 2 == 1 && y % 2 == 1 && !t.solid && (!t.entities || t.entities.length == 0)) {
-            if (Math.random() > 0.92) {
-                // state.entities.addEntity(new FollowerEntity([x, y], state), state);
-            } else if (Math.random() > 0.9) {
-                state.entities.addEntity(new RatEntity([x, y]), state);
-            }
-        }
+        // if (x % 2 == 1 && y % 2 == 1 && !t.solid && (!t.entities || t.entities.length == 0)) {
+        //     if (Math.random() > 0.92) {
+        //         // state.entities.addEntity(new FollowerEntity([x, y], state), state);
+        //     } else if (Math.random() > 0.9) {
+        //         state.entities.addEntity(new RatEntity([x, y]), state);
+        //     }
+        // }
 
         if (t.type == "door") {
             // TODO introduce some sort of unnamed entity
@@ -31,25 +31,25 @@ export function placeEntities(state: State): void {
         }
     });
 
-    const hallwayTiles: XY[] = [];
-    state.maze.forEach((x, y, t) => {
-        if (x % 2 == 1 && y % 2 == 1 && t.type === "hall") {
-            hallwayTiles.push([x, y]);
-        }
-    });
+    // const hallwayTiles: XY[] = [];
+    // state.maze.forEach((x, y, t) => {
+    //     if (x % 2 == 1 && y % 2 == 1 && t.type === "hall") {
+    //         hallwayTiles.push([x, y]);
+    //     }
+    // });
 
-    hallwayTiles.sort((b,a) => {
-        const tileA = state.maze.get(a[0], a[1]);
-        const tileB = state.maze.get(b[0], b[1]);
-        return (tileB?.distanceFromPath ?? 0) - (tileA?.distanceFromPath ?? 0);
-    });
+    // hallwayTiles.sort((b,a) => {
+    //     const tileA = state.maze.get(a[0], a[1]);
+    //     const tileB = state.maze.get(b[0], b[1]);
+    //     return (tileB?.distanceFromPath ?? 0) - (tileA?.distanceFromPath ?? 0);
+    // });
 
-    const farthestThird = hallwayTiles.slice(Math.floor((hallwayTiles.length * 2) / 3));
-    shuffle(farthestThird);
+    // const farthestThird = hallwayTiles.slice(Math.floor((hallwayTiles.length * 2) / 3));
+    // shuffle(farthestThird);
 
-    for (let i = 0; i < 5 && i < farthestThird.length; i++) {
-        state.entities.addEntity(new FollowerEntity(farthestThird[i], state), state);
-    }
+    // for (let i = 0; i < 5 && i < farthestThird.length; i++) {
+    //     state.entities.addEntity(new FollowerEntity(farthestThird[i], state), state);
+    // }
 
     // Find the tile with the "key" item and add an entity
     state.maze.forEach((x, y, t) => {

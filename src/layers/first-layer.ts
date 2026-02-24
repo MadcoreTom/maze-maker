@@ -11,14 +11,14 @@ export class FirstLayer extends LayerLogic {
                 type: "number",
                 min: 1,
                 max: 100,
-                value: 25,
+                value: 17,
             },
             {
                 name: "Height",
                 type: "number",
                 min: 1,
                 max: 100,
-                value: 25,
+                value: 17,
             },
         ]);
     }
