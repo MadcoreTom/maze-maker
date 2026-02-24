@@ -1,14 +1,11 @@
 import { type Action, calculateAllActions } from "../action";
 import { type ActionAnimation, createParallelAnimation } from "../animation";
-import { DoorEntity, EndEntity, FollowerEntity, KeyEntity, PlayerEntity, StaticEntity } from "../entities/entity";
-import { RatEntity } from "../entities/rat.entity";
 import { applyParams, L1 } from "../layers";
 import type { LayerLogic } from "../layers/layer";
 import { PixelRenderer } from "../render/renderer-pixel";
 import { createInitialState, type State } from "../state";
 import type { MyGenerator } from "../types";
 import { calcVisibility } from "../util/distance";
-import type { XY } from "../util/xy";
 
 enum Control {
     UP,
@@ -326,55 +323,6 @@ export class GameComponent extends HTMLElement {
                 }
             }
             if (!this.curGenerator && this.state) {
-                // TODO make a function called "place entities" or something
-                // last generator step
-                const pos: XY = this.state.start || [1, 1];
-
-                this.state.entities.addEntity(new PlayerEntity(pos, this.state!, "player"), this.state!);
-                this.state.start &&
-                    this.state.entities.addEntity(
-                        new StaticEntity(this.state.start, this.state!, "start", "start"),
-                        this.state!,
-                    );
-                this.state.end &&
-                    this.state.entities.addEntity(new EndEntity(this.state.end, this.state!, "end"), this.state!);
-
-                this.state.maze.forEach((x, y, t) => {
-                    if (x % 2 == 1 && y % 2 == 1 && !t.solid && (!t.entities || t.entities.length == 0)) {
-                        if (Math.random() > 0.92) {
-                            this.state?.entities.addEntity(new FollowerEntity([x, y], this.state!), this.state);
-                        } else if (Math.random() > 0.9) {
-                            this.state?.entities.addEntity(new RatEntity([x, y]), this.state);
-                        }
-                    }
-
-                    if (t.type == "door") {
-                        // TODO introduce some sort of unnamed entity
-                        if (t.items && t.items.door && t.items.door !== "open") {
-                            this.state?.entities.addEntity(
-                                new DoorEntity(
-                                    [x, y],
-                                    t.items && t.items.door && t.items.door == "closed" ? "closed" : "locked",
-                                ),
-                                this.state,
-                            );
-                        }
-                    }
-                });
-
-                // Find the tile with the "key" item and add an entity
-                this.state.maze.forEach((x, y, t) => {
-                    if (t.items && t.items.key) {
-                        const e = new KeyEntity([x, y], this.state!, "key");
-                        this.state!.entities.addEntity(e, this.state!);
-
-                        if (!t.entities) {
-                            t.entities = [];
-                        }
-                        t.entities.push(e);
-                    }
-                });
-
                 this.updateActions();
                 this.updateButtons();
             }

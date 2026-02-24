@@ -178,6 +178,11 @@ export class FollowerEntity extends Entity {
 
     public onTurn(state: State): ActionAnimation | undefined {
         const t = this.getTile();
+        const tile = state.maze.get(t[0],t[1]) as Tile;
+        if(!tile.discovered){
+            // don't move until discovered
+            return undefined;
+        }
         const results = state.maze.getKernel(t, KERNEL_UDLR2);
 
         const up = this.allClear([results[0], results[1]]); //(results[0] && results[1] && !results[0].solid && !results[1].solid) ? results[1].visDistance : null;

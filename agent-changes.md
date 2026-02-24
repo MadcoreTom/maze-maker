@@ -2,6 +2,9 @@
 
 > This file lists any changes made via the AI agent (except for those made before I started tracking it)
 
+* Extracted entity placement logic to entity-placer.ts
+  * src/entity-placer.ts (new file)
+  * src/components/game-component.ts: Replaced inline logic with placeEntities() call
 * Updated game-component.ts to pass names to entity constructors
   * src/components/game-component.ts
 * Removed first param from Entities.addEntity, now gets name solely from entity.name
@@ -16,3 +19,5 @@
 * Improved entity removal debugging in entities.ts and entity.ts
   * src/entities/entities.ts: Added warn logging when entity not found in tile
   * src/entities/entity.ts: Added warn logging when entity not found in oldTile during move
+* Implemented TODOs in entity-placer.ts: added hallway follower entity placement logic
+  * src/entity-placer.ts

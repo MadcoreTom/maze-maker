@@ -141,6 +141,37 @@ export class PathRenderer extends BaseRenderer {
     }
 }
 
+export class EntityRenderer extends BaseRenderer {
+    public constructor(
+    ) {
+        super();
+    }
+
+    public renderFloor(ctx: CanvasRenderingContext2D, rect: Rect, tile: Tile, xy: XY): void {
+        let colour = PALETTE.purple;
+        this.rectangle(ctx, colour, rect);
+      
+        ctx.textAlign = "center"
+        if (tile.entities) {
+            let str = tile.entities.map(e=>e.constructor.name.replace("Entity","")).filter(a=>a!="Door").join("\n");
+            ctx.fillStyle = "cyan";
+            ctx.fillText(str, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+    }
+
+    public renderItems(ctx: CanvasRenderingContext2D, s: State, t: Tile, xy: XY, rect: Rect): void {
+        if (t.items) {
+            if (t.items.door) {
+                const colour = { open: "limegreen", closed: "yellow", locked: "magenta" }[t.items.door];
+                this.rectangle(ctx, colour, rect);
+            }
+        }
+    }
+    
+}
+
+
+
 export class GridRenderer extends BaseRenderer {
     protected renderTile(ctx: CanvasRenderingContext2D, x: number, y: number, state: State, tile: Tile, rect: Rect) {
         const colour = tile.solid ? PALETTE.black : `hsl(${tile.roomId * 3}, 75%, 50%)`;
