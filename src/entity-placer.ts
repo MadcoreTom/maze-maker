@@ -57,10 +57,10 @@ export function placeEntities(state: State): void {
             const e = new KeyEntity([x, y], state, "key");
             state.entities.addEntity(e, state);
 
-            if (!t.entities) {
-                t.entities = [];
-            }
-            t.entities.push(e);
+            // if (!t.entities) {
+            //     t.entities = [];
+            // }
+            // t.entities.push(e);
         }
     });
 }
